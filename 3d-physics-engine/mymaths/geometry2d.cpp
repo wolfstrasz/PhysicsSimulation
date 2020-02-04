@@ -115,3 +115,68 @@ bool LineOrientedRectangle(const Line2D& line,
   Rectangle2D localRectangle(Point2D(), rectangle.halfExtents * 2.0f);
   return LineRectangle(localLine, localRectangle);
 }
+
+// Collision Test :: Circle and Circle
+bool CircleCircle(const Circle& c1, const Circle& c2) {
+  Line2D line(c1.position, c2.position);
+  float radiiSum = c1.radius + c2.radius;
+  return LengthSq(line) <= radiiSum * radiiSum;
+}
+
+// Collision Test :: Circle and Rectangle
+bool CircleRectangle(const Circle& circle, const Rectangle2D& rect) {
+  // Find min and max points
+  vec2 min = GetMin(rect);
+  vec2 max = GetMax(rect);
+
+  // find the closest point on the rectangle to the position of the circle
+  Point2D closestPoint = circle.position;
+
+  closestPoint.x = (closestPoint.x < min.x) ? min.x : closestPoint.x;
+  closestPoint.x = (closestPoint.x > max.x) ? max.x : closestPoint.x;
+
+  closestPoint.y = (closestPoint.y < min.y) ? min.y : closestPoint.y;
+  closestPoint.y = (closestPoint.y > max.y) ? max.y : closestPoint.y;
+
+  // Check if point is inside circle
+  Line2D line(circle.position, closestPoint);
+  return LengthSq(line) <= circle.radius * circle.radius;
+}
+
+// Collision Test :: Circle and Oriented Rectangle
+bool CircleOrientedRectangle(const Circle& circle,
+                             const OrientedRectangle& rect) {
+  // Create line between both centres
+  vec2 r = circle.position - rect.position;
+
+  // Construct rotation matrix
+  float theta = -DEG2RAD(rect.rotation);
+  float zRotation2x2[] = {cosf(theta), sinf(theta), -sinf(theta), cosf(theta)};
+
+  // Rotate the centre of the circle
+  Multiply(r.asArray, vec2(r.x, r.y).asArray, 1, 2, zRotation2x2, 2, 2);
+
+  // Create new local circle
+  Circle lCircle(r + rect.halfExtents, circle.radius);
+
+  // Create new local rectangle
+  Rectangle2D lRect(Point2D(), rect.halfExtents * 2.0f);
+
+  // Do circle-rectangle collision test
+  return CircleRectangle(lCircle, lRect);
+}
+
+// Collision Test :: Rectangle and Rectangle
+
+bool RectangleRectangle(const Rectangle2D& rect1, const Rectangle2D& rect2) {
+  // Get both min max
+  vec2 aMin = GetMin(rect1);
+  vec2 aMax = GetMax(rect1);
+  vec2 bMin = GetMin(rect2);
+  vec2 bMax = GetMax(rect2);
+  // Check for overlap on both axes
+  bool overX = ((bMin.x <= aMax.x) && (aMin.x <= bMax.x));
+  bool overY = ((bMin.y <= aMax.y) && (aMin.y <= bMax.y));
+
+  return overX && overY;
+}

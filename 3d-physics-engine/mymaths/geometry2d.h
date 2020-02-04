@@ -75,4 +75,19 @@ bool LineRectangle(const Line2D& line, const Rectangle2D& rectangle);
 bool LineOrientedRectangle(const Line2D& line,
                            const OrientedRectangle& rectangle);
 
+// Collision Test :: Circle and Circle
+bool CircleCircle(const Circle& c1, const Circle& c2);
+
+// Collision Test :: Circle and Rectangle
+bool CircleRectangle(const Circle& circle, const Rectangle2D& rectangle);
+#define RectangleCircle(rectangle, circle) CircleRectangle(circle, rectangle)
+
+// Collision Test :: Circle and Oriented Rectangle
+bool CircleOrientedRectangle(const Circle& circle,
+                             const OrientedRectangle& rect);
+#define OrientedRectangleCircle(rectangle, circle) \
+  CircleOrientedRectangle(circle, rectangle)
+
+// Collision Test :: Rectangle and Rectangle
+bool RectangleRectangle(const Rectangle2D& rect1, const Rectangle2D& rect2);
 #endif  // !_H_MYMATHS_GEOMETRY2D
