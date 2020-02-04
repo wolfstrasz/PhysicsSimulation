@@ -127,11 +127,13 @@
     <ClCompile Include="mymaths\geometry2d.cpp" />
     <ClCompile Include="mymaths\matrices.cpp" />
     <ClCompile Include="mymaths\vectors.cpp" />
+    <ClCompile Include="QuadTree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mymaths\geometry2d.h" />
     <ClInclude Include="mymaths\matrices.h" />
     <ClInclude Include="mymaths\vectors.h" />
+    <ClInclude Include="QuadTree.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

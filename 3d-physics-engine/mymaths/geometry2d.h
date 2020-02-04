@@ -132,7 +132,7 @@ typedef struct BoundingShape {
   Rectangle2D* rectangles;
   inline BoundingShape()
       : numCircles(0), circles(0), numRectangles(0), rectangles(0) {}
-};
+} BoundingShape;
 
 bool PointInShape(const BoundingShape& shape, const Point2D& point);
 
