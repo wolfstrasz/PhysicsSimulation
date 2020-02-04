@@ -105,24 +105,21 @@ mat2 operator*(const mat2& matA, const mat2& matB);
 mat3 operator*(const mat3& matA, const mat3& matB);
 mat4 operator*(const mat4& matA, const mat4& matB);
 
-float Determinant(const mat2& matrix);
-
 mat2 Cut(const mat3& mat, int row, int col);
+mat3 Cut(const mat4& mat, int row, int col);
 
 mat2 Minor(const mat2& mat);
 mat3 Minor(const mat3& mat);
+mat4 Minor(const mat4& mat);
 
 void Cofactor(float* out, const float* minor, int rows, int cols);
 mat3 Cofactor(const mat3& mat);
 mat2 Cofactor(const mat2& mat);
-
-float Determinant(const mat3& mat);
-
-float DeterminantFastMat3(const mat3& mat);
-
-mat3 Cut(const mat4& mat, int row, int col);
-mat4 Minor(const mat4& mat);
 mat4 Cofactor(const mat4& mat);
+
+float Determinant(const mat2& matrix);
+float Determinant(const mat3& mat);
+float DeterminantFastMat3(const mat3& mat);
 float Determinant(const mat4& mat);
 
 mat2 Adjugate(const mat2& mat);
@@ -132,4 +129,45 @@ mat4 Adjugate(const mat4& mat);
 mat2 Inverse(const mat2& mat);
 mat3 Inverse(const mat3& mat);
 mat4 Inverse(const mat4& mat);
+
+// TRANSLATION
+mat4 Translation(float x, float y, float z);
+mat4 Translation(const vec3& pos);
+vec3 GetTranslation(const mat4& mat);
+
+// SCALLING
+mat4 Scale(float x, float y, float z);
+mat4 Scale(const vec3& vec);
+vec3 GetScale(const mat4& mat);
+
+// ROTATION EULER ANGLES (CAN GIMBAL LOCK)
+mat4 Rotation(float pitch, float yaw, float roll);
+mat3 Rotation3x3(float pitch, float yaw, float roll);
+
+mat4 ZRotation(float angle);
+mat3 ZRotation3x3(float angle);
+
+mat4 XRotation(float angle);
+mat3 XRotation3x3(float angle);
+
+mat4 YRotation(float angle);
+mat3 YRotation3x3(float angle);
+
+mat4 AxisAngle(const vec3& axis, float angle);
+mat3 AxisAngle3x3(const vec3& axis, float angle);
+
+// MULTIPLICATION POINT/VECTOR by MATRIX (PRE-MULTIPLICATION)
+vec3 MultiplyPoint(const vec3& vec, const mat4& mat);
+vec3 MultiplyVector(const vec3& vec, const mat4& mat);
+vec3 MultiplyVector(const vec3& vec, const mat3& mat);
+
+// SCALE -> ROTATE -> TRANSLATE (WORLD TRANSFORM)
+mat4 Transform(const vec3& scale, const vec3& eulerRotation,
+               const vec3& translate);
+mat4 Transform(const vec3& scale, const vec3& rotationAxis, float rotationAngle,
+               const vec3& translate);
+
+// VIEW TRANSFORM
+mat4 LookAt(const vec3& position, const vec3& target, const vec3& up);
+
 #endif  // !_H_MATH_MATRICES
