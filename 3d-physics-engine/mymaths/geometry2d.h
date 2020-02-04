@@ -117,4 +117,23 @@ bool RectangleOrientedRectangle(const Rectangle2D& rect1,
 bool OrientedRectangleOrientedRectangle(const OrientedRectangle& r1,
                                         const OrientedRectangle& r2);
 
+// Additional 2D functionality
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+Circle ContainingCircle(Point2D* pArray, int arrayCount);
+Rectangle2D ContainingRectangle(Point2D* pointArray, int arrayCount);
+
+// Bounding Shape (does not own memory)
+typedef struct BoundingShape {
+  int numCircles;
+  Circle* circles;
+  int numRectangles;
+  Rectangle2D* rectangles;
+  inline BoundingShape()
+      : numCircles(0), circles(0), numRectangles(0), rectangles(0) {}
+};
+
+bool PointInShape(const BoundingShape& shape, const Point2D& point);
+
 #endif  // !_H_MYMATHS_GEOMETRY2D
