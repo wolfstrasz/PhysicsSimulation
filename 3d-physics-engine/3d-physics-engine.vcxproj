@@ -124,10 +124,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mymaths\geometry2d.cpp" />
     <ClCompile Include="mymaths\matrices.cpp" />
     <ClCompile Include="mymaths\vectors.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mymaths\geometry2d.h" />
     <ClInclude Include="mymaths\matrices.h" />
     <ClInclude Include="mymaths\vectors.h" />
   </ItemGroup>

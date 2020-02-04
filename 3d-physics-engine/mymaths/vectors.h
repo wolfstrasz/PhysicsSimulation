@@ -1,5 +1,5 @@
 #ifndef _H_MYMATHS_VECTORS
-#define _H_MYMATHS_VECRORS
+#define _H_MYMATHS_VECTORS
 
 #define RAD2DEG(x) ((x)*57.295754f)
 #define DEG2RAD(x) ((x)*0.0174533f)
