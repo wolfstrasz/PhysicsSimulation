@@ -62,6 +62,16 @@ typedef struct OrientedRectangle {
       : position(pos), halfExtents(ext), rotation(rot) {}
 } OrientedRectangle;
 
+// Interval of points (for projection on line)
+typedef struct Interval2D {
+  float min;
+  float max;
+} Interval2D;
+
+// Interval Functionality
+Interval2D GetInterval(const Rectangle2D& rect, const vec2& axis);
+Interval2D GetInterval(const OrientedRectangle& rect, const vec2& axis);
+
 // Point Containment Tests
 bool PointOnLine(const Point2D& point, const Line2D& line);
 bool PointInCircle(const Point2D& point, const Circle& circle);
@@ -90,4 +100,21 @@ bool CircleOrientedRectangle(const Circle& circle,
 
 // Collision Test :: Rectangle and Rectangle
 bool RectangleRectangle(const Rectangle2D& rect1, const Rectangle2D& rect2);
+
+// Overlap on Axis Test
+bool OverlapOnAxis(const Rectangle2D& rect1, const Rectangle2D& rect2,
+                   const vec2& axis);
+bool OverlapOnAxis(const Rectangle2D& rect1, const OrientedRectangle& rect2,
+                   const vec2& axis);
+
+// Separating Axis Theorem test
+bool RectangleRectangleSAT(const Rectangle2D& rect1, const Rectangle2D& rect2);
+bool RectangleOrientedRectangle(const Rectangle2D& rect1,
+                                const OrientedRectangle& rect2);
+#define OrientedRectangleRectangle(oriented, regular) \
+  RectangleOrientedRectangle(regular, oriented)
+
+bool OrientedRectangleOrientedRectangle(const OrientedRectangle& r1,
+                                        const OrientedRectangle& r2);
+
 #endif  // !_H_MYMATHS_GEOMETRY2D
