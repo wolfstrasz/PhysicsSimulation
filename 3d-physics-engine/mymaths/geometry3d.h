@@ -117,4 +117,55 @@ Point GetClosestPoint(const Line& line, const Point& point);
 // Ray
 bool IsPointOnRay(const Point& point, const Ray& ray);
 Point GetClosestPoint(const Ray& ray, const Point& point);
+
+// Sphere Collision tests
+// -----------------------
+bool SphereSphere(const Sphere& s1, const Sphere& s2);
+bool SphereAABB(const Sphere& sphere, const AABB& aabb);
+#define AABBSphere(aabb, sphere) SphereAABB(Sphere, AABB)
+bool SphereOBB(const Sphere& sphere, const OBB& obb);
+#define OBBSphere(obb, sphere) SphereOBB(sphere, obb)
+bool SpherePlane(const Sphere& sphere, const Plane& plane);
+#define PlaneSphere(plane, sphere) SpherePlane(sphere, plane)
+
+// Axis Aligned Bounding Box Collision test
+// ----------------------------------------
+bool AABBAABB(const AABB& aabb1, const AABB& aabb2);
+
+// Intervals to project Bounding boxes onto axis
+// ----------------------------------------------
+typedef struct Interval {
+  float min;
+  float max;
+} Interval;
+
+Interval GetIntervalProjection(const AABB& rect, const vec3& axis);
+Interval GetIntervalProjection(const OBB& rect, const vec3& axis);
+
+bool AreOverlapingOnAxis(const AABB& aabb, const OBB& obb, const vec3& axis);
+bool AreOverlapingOnAxis(const OBB& obb1, const OBB& obb2, const vec3& axis);
+
+// AABB with OBB Collision test by SAT
+// -----------------------------------
+bool AABBOBB(const AABB& aabb, const OBB& obb);
+#define OBBAABB(obb, aabb) AABBOBB(aabb, obb)
+
+// AABB with Plane Collision test
+// -------------------------------
+bool AABBPlane(const AABB& aabb, const Plane& plane);
+#define PlaneAABB(plane, aabb) AABBPlane(aabb, plane)
+
+// OBB with OBB Collision test by SAT
+// -----------------------------------
+bool OBBOBB(const OBB& obb1, const OBB& obb2);
+
+// OBB with Plane Collision test
+// ------------------------------
+bool OBBPlane(const OBB& obb, const Plane& plane);
+#define PlaneOBB(plane, obb) OBBPlane(obb, plane)
+
+// PLane with Plane Intersection test
+// -----------------------------------
+bool DoPlanesIntersect(const Plane& plane1, const Plane& plane2);
+
 #endif  // !_H_MYMATHS_GEOMETRY_3D
