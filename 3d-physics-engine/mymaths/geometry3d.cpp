@@ -386,7 +386,238 @@ bool OBBPlane(const OBB& obb, const Plane& plane) {
 
 // PLane with Plane Intersection test
 // -----------------------------------
-bool DoPlanesIntersect(const Plane& plane1, const Plane& plane2) {
+bool PlanePlane(const Plane& plane1, const Plane& plane2) {
   vec3 d = Cross(plane1.normal, plane2.normal);  // <0,0,0> if parallel
   return !CMP(Dot(d, d), 0.0f);
+}
+
+float Raycast(const Sphere& sphere, const Ray& ray)
+{
+	vec3 e = sphere.position - ray.origin;
+
+	// Store squared radiuses and maginitudes
+	float rSq = sphere.radius * sphere.radius;
+	float eSq = MagnitudeSq(e);
+
+	// ray.direction is assumed to be normalized
+	float a = Dot(e, ray.direction);
+
+	// Construct sides of a triangle (work with squared units)
+	float bSq = eSq - (a * a);
+	float f = sqrt(rSq - bSq);
+
+	// No collision has happened
+	if (rSq - (eSq - (a * a)) < 0.0f) {
+		return -1; // -1 is invalid.
+	}
+	// Ray starts inside the sphere
+	else if (eSq < rSq) {
+		return a + f; // Just reverse direction
+	}
+	// else Normal intersection
+	return a - f;
+}
+
+float Raycast(const AABB& aabb, const Ray& ray)
+{
+	vec3 min = GetMin(aabb);
+	vec3 max = GetMax(aabb);
+
+	// Find the both intersections of the ray against each of the three slabs which make up a bounding box
+	float t1 = (min.x - ray.origin.x) / ray.direction.x;
+	float t2 = (max.x - ray.origin.x) / ray.direction.x;
+	float t3 = (min.y - ray.origin.y) / ray.direction.y;
+	float t4 = (max.y - ray.origin.y) / ray.direction.y;
+	float t5 = (min.z - ray.origin.z) / ray.direction.z;
+	float t6 = (max.z - ray.origin.z) / ray.direction.z;
+
+	// To find the point of entry, we need to find the largest minimum value.
+	// To find the point of exit, we need to find the smallest minimum value.
+
+	// Find largest min value
+	float tmin = fmaxf(
+		fmaxf(
+			fminf(t1, t2),
+			fminf(t3, t4)
+		),
+		fminf(t5, t6)
+	);
+
+	// Find smallex max val
+	float tmax = fminf(
+		fminf(
+			fmaxf(t1, t2),
+			fmaxf(t3, t4)
+		),
+		fmaxf(t5, t6)
+	);
+
+	// Check if intersects from behind
+	if (tmax < 0) {
+		return -1;
+	}
+
+	// Check for general intersection
+	if (tmin > tmax) {
+		return -1;
+	}
+
+	// Check if ray origin is inside of the box
+	// tmin < zero => yes and tmax is valid collision point
+	if (tmin < 0.0f) {
+		return tmax;
+	}
+	return tmin;
+}
+
+float Raycast(const OBB& obb, const Ray& ray)
+{
+	const float* o = obb.orientation.asArray;
+	const float* size = obb.size.asArray;
+	// X, Y and Z axis of OBB
+	vec3 X(o[0], o[1], o[2]);
+	vec3 Y(o[3], o[4], o[5]);
+	vec3 Z(o[6], o[7], o[8]);
+
+	// Find a vector pointing from origin of ray to OBB
+	vec3 p = obb.position - ray.origin;
+
+	// Project the direction onto each of the axis
+	vec3 f(
+		Dot(X, ray.direction),
+		Dot(Y, ray.direction),
+		Dot(Z, ray.direction)
+	);
+
+	// Project vector P onto each axis of rotation
+	vec3 e(
+		Dot(X, p),
+		Dot(Y, p),
+		Dot(Z, p)
+	);
+
+	// Calcualte all max and mins line in AABB
+	float t[6] = { 0, 0, 0, 0, 0, 0 };
+	for (int i = 0; i < 3; ++i) {
+		if (CMP(f[i], 0)) {
+			// If the ray is parallel to the slab being tested, and the origin of the ray is not inside the
+			// slab we have no hit
+			if (-e[i] - size[i] > 0 || -e[i] + size[i] < 0) {
+				return -1;
+			}
+			f[i] = 0.00001f; // Avoid div by 0!
+		}
+		t[i * 2 + 0] = (e[i] + size[i]) / f[i]; // min
+		t[i * 2 + 1] = (e[i] - size[i]) / f[i]; // max
+	}
+
+	// Find min and max values
+	float tmin = fmaxf(
+		fmaxf(
+			fminf(t[0], t[1]),
+			fminf(t[2], t[3])),
+		fminf(t[4], t[5])
+	);
+	float tmax = fminf(
+		fminf(
+			fmaxf(t[0], t[1]),
+			fmaxf(t[2], t[3])),
+		fmaxf(t[4], t[5])
+	);
+
+	// tmax < 0 => ray origin from behind (doesn't count)
+	if (tmax < 0) {
+		return -1.0f;
+	}
+
+	// tmin > tmax => ray does not intersect
+	if (tmin > tmax) {
+		return -1.0f;
+	}
+
+	// tmin < 0 => origin of ray is inside OBB
+	if (tmin < 0.0f) {
+		return tmax;
+	}
+
+	// Else return closes point
+	return tmin;
+}
+
+float Raycast(const Plane& plane, const Ray& ray)
+{
+	float nd = Dot(ray.direction, plane.normal);
+	float pn = Dot(ray.origin, plane.normal);
+
+	// nd has to be < 0 for ray to intersect
+	// else normal of plane and ray point in same direction
+	if (nd >= 0.0f) {
+		return -1;
+	}
+
+	// obtain time
+	float t = (plane.distance - pn) / nd;
+
+	// check if ray is hit plane from behind (i.e no hit)
+	if (t >= 0.0f) {
+		return t;
+	}
+	return -1;
+}
+
+bool Linetest(const Sphere& sphere, const Line& line)
+{
+	// Get closes point to sphere
+	Point closest = GetClosestPoint(line, sphere.position);
+	// find the squared distance between the closest point and the centre of the sphere
+	float distSq = MagnitudeSq(sphere.position - closest);
+	//compare that squared distance to the squared magnitude of the
+	//sphere.If the distance is less than the magnitude, we have an intersection
+	return distSq <= (sphere.radius * sphere.radius);
+}
+
+bool Linetest(const AABB& aabb, const Line& line)
+{
+	// Create ray
+	Ray ray;
+	ray.origin = line.start;
+	ray.direction = AsNormal(line.end - line.start);
+	// Raycast
+	float t = Raycast(aabb, ray);
+
+	// Check if there is intersection and if distance is less than the lines maginitude
+	return t >= 0 && t * t <= LengthSq(line);
+}
+
+bool Linetest(const OBB& obb, const Line& line)
+{
+	// Create ray from line origin
+	Ray ray;
+	ray.origin = line.start;
+
+	// Raycast in direction of other line point
+	ray.direction = AsNormal(line.end - line.start);
+	float t = Raycast(obb, ray);
+	// Check for intersection and if length from origin is in line bounds
+	return t >= 0 && t * t <= LengthSq(line);
+}
+
+bool Linetest(const Plane& plane, const Line& line)
+{
+	// Line vector
+	vec3 ab = line.end - line.start;
+
+	// Project start point onto plane normal
+	float nA = Dot(plane.normal, line.start);
+	// Project end point onto plane normal
+	float nAB = Dot(plane.normal, ab);
+
+	// check if plane and line are parallel
+	if (nAB = 0.0f) return false;
+
+	// Get distance
+	float t = (plane.distance - nA) / nAB;
+
+	// Check to see for intersection
+	return t >= 0.0f && t <= 1.0f;
 }

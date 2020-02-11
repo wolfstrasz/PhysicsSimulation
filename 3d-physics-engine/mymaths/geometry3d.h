@@ -40,7 +40,6 @@ typedef struct Sphere {
 } Sphere;
 
 // Axis Aligned Bounding Box (AABB)
-
 typedef struct AABB {
   Point origin;
   vec3 size;
@@ -166,6 +165,22 @@ bool OBBPlane(const OBB& obb, const Plane& plane);
 
 // PLane with Plane Intersection test
 // -----------------------------------
-bool DoPlanesIntersect(const Plane& plane1, const Plane& plane2);
+bool PlanePlane(const Plane& plane1, const Plane& plane2);
+
+// Raycasting - care if it intersects and how much time it takes
+// -----------------------------------
+float Raycast(const Sphere& sphere, const Ray& ray);
+float Raycast(const AABB& aabb, const Ray& ray);
+float Raycast(const OBB& obb, const Ray& ray);
+float Raycast(const Plane& plane, const Ray& ray);
+
+// Linetest - only care if it intersects (bool)
+// -----------------------------------
+bool Linetest(const Sphere& sphere, const Line& line);
+bool Linetest(const AABB& aabb, const Line& line);
+bool Linetest(const OBB& obb, const Line& line);
+bool Linetest(const Plane& plane, const Line& line);
+
+
 
 #endif  // !_H_MYMATHS_GEOMETRY_3D
