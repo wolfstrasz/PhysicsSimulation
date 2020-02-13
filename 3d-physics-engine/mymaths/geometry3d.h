@@ -181,6 +181,37 @@ bool Linetest(const AABB& aabb, const Line& line);
 bool Linetest(const OBB& obb, const Line& line);
 bool Linetest(const Plane& plane, const Line& line);
 
+// Collision cases for Triangle
+// -----------------------------------
+// Helper functions for tringle
+bool PointInTriangle(const Point& p, const Triangle& t);
+Plane FromTriangle(const Triangle& t);
+Point GetClosestPoint(const Triangle& t, const Point& p);
 
+// Triangle with Sphere Collision test
+bool TriangleSphere(const Triangle& t, const Sphere& s);
+#define SphereTriangle(s, t) TriangleSphere(t, s)
 
+// Triangle with AABB Collision test
+Interval GetIntervalProjection(const Triangle& triangle, vec3& axis);
+bool AreOverlapingOnAxis(const AABB& aabb, const Triangle& triangle, const vec3& axis);
+bool TriangleAABB(const Triangle& t, const AABB& a);
+#define AABBTriangle(a, t) TriangleAABB(t, a)
+
+// Triangle with OBB Collision test
+bool AreOverlapingOnAxis(const OBB& obb, const Triangle& triangle, const vec3& axis);
+bool TriangleOBB(const Triangle& t, const OBB& o);
+#define OBBTriangle(o, t) TriangleOBB(t, o)
+
+// Triangle with Plane Collision test
+bool TrianglePlane(const Triangle& t, const Plane& p);
+#define PlaneTriangle(p, t) TrianglePlane(t, p)
+
+// Triangle with Triangle Collision test
+bool AreOverlapingOnAxis(const Triangle& t1, const Triangle& t2, const vec3& axis);
+bool TriangleTriangle(const Triangle& t1, const Triangle& t2);
+
+// SAT cross edge for normals going to 0
+vec3 SatCrossEdge(const vec3& t1_p1, const vec3& t1_p2, const vec3& t2_p1, const vec3& t2_p2);
+bool TriangleTriangleRobust(const Triangle& t1,const Triangle& t2);
 #endif  // !_H_MYMATHS_GEOMETRY_3D

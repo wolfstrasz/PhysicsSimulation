@@ -391,6 +391,9 @@ bool PlanePlane(const Plane& plane1, const Plane& plane2) {
   return !CMP(Dot(d, d), 0.0f);
 }
 
+
+// Raycasting
+// -----------------------------------
 float Raycast(const Sphere& sphere, const Ray& ray)
 {
 	vec3 e = sphere.position - ray.origin;
@@ -565,6 +568,8 @@ float Raycast(const Plane& plane, const Ray& ray)
 	return -1;
 }
 
+// Linetests
+// -----------------------------------
 bool Linetest(const Sphere& sphere, const Line& line)
 {
 	// Get closes point to sphere
@@ -620,4 +625,316 @@ bool Linetest(const Plane& plane, const Line& line)
 
 	// Check to see for intersection
 	return t >= 0.0f && t <= 1.0f;
+}
+
+
+
+// Triangle collisions
+// -----------------------------------
+bool PointInTriangle(const Point& p, const Triangle& t)
+{
+	// temp triangle in the point local system
+	vec3 a = t.a - p;
+	vec3 b = t.b - p;
+	vec3 c = t.c - p;
+
+	// Create sides of pyramid from P and ABC triangle then store sides' normals
+	vec3 normPBC = Cross(b, c); // Normal of PBC (u)
+	vec3 normPCA = Cross(c, a); // Normal of PCA (v)
+	vec3 normPAB = Cross(a, b); // Normal of PAB (w)
+
+
+	// If the faces of the pyramid do not have the same normal, the point is not contained within the triangle
+	if (Dot(normPBC, normPCA) < 0.0f) {
+		return false;
+	}
+	else if (Dot(normPBC, normPAB) < 0.0f) {
+		return false;
+	}
+	// Same normals => flat pyramid (no volume) => point in triangle
+	return true;
+}
+
+Plane FromTriangle(const Triangle& t)
+{
+	// Create a plane from a triangle
+	Plane result;
+	result.normal = AsNormal(Cross(t.b - t.a, t.c - t.a));
+
+	// project A/B/C point to the normal of the plane to 
+	// get the distane between plane and origin
+	result.distance = Dot(result.normal, t.a);
+	return result;
+}
+
+Point GetClosestPoint(const Triangle& t, const Point& p)
+{
+	// Obtain plane from triangle
+	Plane plane = FromTriangle(t);
+
+	// Get closes point of P to the plane
+	Point closest = GetClosestPoint(plane, p);
+
+	// Check to see if closest point is in triangle
+	if (PointInTriangle(closest, t)) {
+		return closest;
+	}
+	// Else: Construct one line for each side of the triangle and test for point
+	Point c1 = GetClosestPoint(Line(t.a, t.b), p); // Line AB
+	Point c2 = GetClosestPoint(Line(t.b, t.c), p); // Line BC
+	Point c3 = GetClosestPoint(Line(t.c, t.a), p); // Line CA
+
+	// Measure how far each is from the test point
+	float magSq1 = MagnitudeSq(p - c1);
+	float magSq2 = MagnitudeSq(p - c2);
+	float magSq3 = MagnitudeSq(p - c3);
+
+	// return closest
+	if (magSq1 < magSq2 && magSq1 < magSq3) {
+		return c1;
+	}
+	else if (magSq2 < magSq1 && magSq2 < magSq3) {
+		return c2;
+	}
+	return c3;
+}
+
+bool TriangleSphere(const Triangle& t, const Sphere& s)
+{
+	// get closest point of triangle to sphere's position
+	Point closest = GetClosestPoint(t, s.position);
+
+	// Get distance between closest point and sphere position
+	float magSq = MagnitudeSq(closest - s.position);
+
+	// Check if distance is longer than radius
+	return magSq <= s.radius * s.radius;
+}
+
+Interval GetIntervalProjection(const Triangle& triangle, const vec3& axis)
+{
+	Interval result;
+
+	// Project the first point of the triangle onto the axis
+	result.min = Dot(axis, triangle.points[0]);
+	result.max = result.min;
+
+	// Project other 2 points on the axis. Store them accordingly on min/max value
+	for (int i = 1; i < 3; ++i) {
+		float value = Dot(axis, triangle.points[i]);
+		result.min = fminf(result.min, value);
+		result.max = fmaxf(result.max, value);
+	}
+
+	return result;
+}
+
+bool AreOverlapingOnAxis(const AABB& aabb, const Triangle& triangle, const vec3& axis)
+{
+	// Get interval of _aabb onto _axiss
+	Interval a = GetIntervalProjection(aabb, axis);
+	// Get interval of _triangle onto _axis
+	Interval b = GetIntervalProjection(triangle, axis);
+	// Compare for intersection
+	return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+bool TriangleAABB(const Triangle& t, const AABB& a)
+{
+	// Find edge vectors of _triangle
+	vec3 f0 = t.b - t.a;
+	vec3 f1 = t.c - t.b;
+	vec3 f2 = t.a - t.c;
+
+	// Find face normals of _AABB
+	vec3 u0(1.0f, 0.0f, 0.0f);
+	vec3 u1(0.0f, 1.0f, 0.0f);
+	vec3 u2(0.0f, 0.0f, 1.0f);
+
+	// Declare test axes
+	vec3 test[13] = {
+		u0, // AABB Axis 1
+		u1, // AABB Axis 2
+		u2, // AABB Axis 3
+		Cross(f0, f1), // Normal of triangle => then cross products of _AABB normals and _triangle eges
+		Cross(u0, f0), Cross(u0, f1), Cross(u0, f2),
+		Cross(u1, f0), Cross(u1, f1), Cross(u1, f2),
+		Cross(u2, f0), Cross(u2, f1), Cross(u2, f2)
+	};
+
+	// Test for overlaping axes to find separating AXIS
+	for (int i = 0; i < 13; ++i) {
+		if (!AreOverlapingOnAxis(a, t, test[i])) {
+				return false; // Separating axis found
+		}
+	}
+
+	return true; // Separating axis not found
+}
+
+bool AreOverlapingOnAxis(const OBB& obb, const Triangle& triangle, const vec3& axis)
+{
+	// Get interval of _aabb onto _axis
+	Interval a = GetIntervalProjection(obb, axis);
+	// Get interval of _triangle onto _axis
+	Interval b = GetIntervalProjection(triangle, axis);
+	// Compare for intersection
+	return ((b.min <= a.max) && (a.min <= b.max));
+}
+
+bool TriangleOBB(const Triangle& t, const OBB& o)
+{
+	// Find edge vectors of _triangle
+	vec3 f0 = t.b - t.a;
+	vec3 f1 = t.c - t.b;
+	vec3 f2 = t.a - t.c;
+
+	// Get face normals of OBB
+	const float* orientation = o.orientation.asArray;
+	vec3 u0(orientation[0], orientation[1], orientation[2]);
+	vec3 u1(orientation[3], orientation[4], orientation[5]);
+	vec3 u2(orientation[6], orientation[7], orientation[8]);
+
+	// Declare test axes
+	vec3 test[13] = {
+		u0, // _OBB Axis 1
+		u1, // _OBB Axis 2
+		u2, // _OBB Axis 3
+		Cross(f0, f1), // Normal of triangle => then cross products of _AABB normals and _triangle eges
+		Cross(u0, f0), Cross(u0, f1), Cross(u0, f2),
+		Cross(u1, f0), Cross(u1, f1), Cross(u1, f2),
+		Cross(u2, f0), Cross(u2, f1), Cross(u2, f2)
+	};
+
+	// Test for overlaping axes to find separating AXIS
+	for (int i = 0; i < 13; ++i) {
+		if (!AreOverlapingOnAxis(a, t, test[i])) {
+			return false; // Separating axis found
+		}
+	}
+
+	return true;
+}
+
+bool TrianglePlane(const Triangle& t, const Plane& p)
+{
+	// Check _triangle points position to sides of plane
+	float side1 = PlaneEquation(t.a, p);
+	float side2 = PlaneEquation(t.b, p);
+	float side3 = PlaneEquation(t.c, p);
+
+	// If all on plane => triangle is on the plane (coplanar)
+	if (CMP(side1, 0) && CMP(side2, 0) && CMP(side3, 0)) {
+		return true;
+	}
+
+	// If all points are infront => no intersection
+	if (side1 > 0 && side2 > 0 && side3 > 0) {
+		return false;
+	}
+
+	// If all points are behind => no intersection
+	if (side1 < 0 && side2 < 0 && side3 < 0) {
+		return false;
+	}
+
+	// Else intersects somewhere
+	return true;
+}
+
+bool AreOverlapingOnAxis(const Triangle& t1, const Triangle& t2, const vec3& axis)
+{
+	// Get interval of _triangle onto _axis
+	Interval a = GetIntervalProjection(t1, axis);
+	// Get interval of _aabb onto _axis
+	Interval b = GetIntervalProjection(t2, axis);
+	// Compare for intersection
+	return ((b.min <= a.max) && (a.min <= b.max));
+	return false;
+}
+
+bool TriangleTriangle(const Triangle& t1, const Triangle& t2)
+{
+	// Get T1 edges
+	vec3 t1_f0 = t1.b - t1.a;
+	vec3 t1_f1 = t1.c - t1.b;
+	vec3 t1_f2 = t1.a - t1.c;
+
+	// Get T2 edges
+	vec3 t2_f0 = t2.b - t2.a; 
+	vec3 t2_f1 = t2.c - t2.b; 
+	vec3 t2_f2 = t2.a - t2.c;
+
+	// Get potentially separating axis
+	vec3 axisToTest[] = {
+		Cross(t1_f0, t1_f1), // t1 normal
+		Cross(t2_f0, t2_f1), // t2 normal
+		// Cross product of each edge of t1 to each edge of t2
+		Cross(t2_f0, t1_f0), Cross(t2_f0, t1_f1),
+		Cross(t2_f0, t1_f2), Cross(t2_f1, t1_f0),
+		Cross(t2_f1, t1_f1), Cross(t2_f1, t1_f2),
+		Cross(t2_f2, t1_f0), Cross(t2_f2, t1_f1),
+		Cross(t2_f2, t1_f2)
+	};
+
+	// Find separating axis
+	for (int i = 0; i < 11; ++i) {
+		if (!AreOverlapingOnAxis(t1, t2, axisToTest[i])) {
+			return false; // Seperating axis found
+		}
+	}
+
+	return true; // no separating axis found
+}
+
+vec3 SatCrossEdge(const vec3& a, const vec3& b, const vec3& c, const vec3& d)
+{
+	// Create default sides and find their cross product
+	vec3 ab = a - b;
+	vec3 cd = c - d;
+	vec3 result = Cross(ab, cd);
+
+	// Check if cross product is not 0 => they are not parallel => can use the axis
+	if (!CMP(MagnitudeSq(result), 0)) {
+		return result; // Not parallel!
+	}
+	else {
+		// Construct a temp axis perp to side of one triangle
+		vec3 axis = Cross(ab, c - a);
+		result = Cross(ab, axis);
+
+		// Check for parallelism again
+		if (!CMP(MagnitudeSq(result), 0)) {
+			return result; // Not parallel
+		}
+	}
+	// If both test axis are tested parallel then 
+	// no way to get a proper cross product between them
+	return vec3();
+}
+
+bool TriangleTriangleRobust(const Triangle& t1, const Triangle& t2)
+{
+	vec3 axisToTest[] = {
+		SatCrossEdge(t1.a, t1.b, t1.b, t1.c),
+		SatCrossEdge(t2.a, t2.b, t2.b, t2.c),
+		SatCrossEdge(t2.a, t2.b, t1.a, t1.b),
+		SatCrossEdge(t2.a, t2.b, t1.b, t1.c),
+		SatCrossEdge(t2.a, t2.b, t1.c, t1.a),
+		SatCrossEdge(t2.b, t2.c, t1.a, t1.b),
+		SatCrossEdge(t2.b, t2.c, t1.b, t1.c),
+		SatCrossEdge(t2.b, t2.c, t1.c, t1.a),
+		SatCrossEdge(t2.c, t2.a, t1.a, t1.b),
+		SatCrossEdge(t2.c, t2.a, t1.b, t1.c),
+		SatCrossEdge(t2.c, t2.a, t1.c, t1.a)
+	};
+
+	// Find separating axis
+	for (int i = 0; i < 11; ++i) {
+		if (!AreOverlapingOnAxis(t1, t2, axisToTest[i])) {
+			return false; // Seperating axis found
+		}
+	}
+
+	return true; // no separating axis found
 }
