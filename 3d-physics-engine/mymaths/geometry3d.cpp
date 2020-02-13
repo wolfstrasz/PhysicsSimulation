@@ -568,6 +568,62 @@ float Raycast(const Plane& plane, const Ray& ray)
 	return -1;
 }
 
+vec3 Barycentric(const Point& p, const Triangle& t)
+{
+	// Find vectors from test _p to points of _t
+	vec3 ap = p - t.a;
+	vec3 bp = p - t.b;
+	vec3 cp = p - t.c;
+
+	// Get edges of _t as vectors
+	vec3 ab = t.b - t.a;
+	vec3 ac = t.c - t.a;
+	vec3 bc = t.c - t.b;
+	vec3 cb = t.b - t.c;
+	vec3 ca = t.a - t.c;
+
+	// Vec _v will be perpendicular to _edge. _p is projected onto this perp vector
+	// if value is 0 => proj_p is on _edge, if 1 => is on the third point of triangle
+	vec3 v = ab - Project(ab, cb);
+	float a = 1.0f - (Dot(v, ap) / Dot(v, ab)); // 1 => proj_p at C
+
+	v = bc - Project(bc, ac);
+	float b = 1.0f - (Dot(v, bp) / Dot(v, bc)); // 1 => proj_p at A
+
+	v = ca - Project(ca, ab);
+	float c = 1.0f - (Dot(v, cp) / Dot(v, ca)); // 1 => proj_p at B
+
+	// return projection
+	return vec3(a, b, c);
+}
+
+float Raycast(const Triangle& triangle, const Ray& ray)
+{
+	// Create a plane and raycast to plane if no hit => no hit on triangle
+	// Afterwards check for barycentric coords beacause
+	// barycentric gives if a point is inside the "volume" of a triangle
+	Plane plane = FromTriangle(triangle);
+	float t = Raycast(plane, ray);
+	if (t < 0.0f) {
+		return t;
+	}
+
+	// Find point on plane that was hit
+	Point result = ray.origin + ray.direction * t;
+
+	// Find barycentric coords of the point on the triangle
+	vec3 barycentric = Barycentric(result, triangle);
+
+	// If point is within triangle ray hit it
+	if (barycentric.x >= 0.0f && barycentric.x <= 1.0f &&
+		barycentric.y >= 0.0f && barycentric.y <= 1.0f &&
+		barycentric.z >= 0.0f && barycentric.z <= 1.0f) {
+		return t;
+	}
+
+	return -1.0f;
+}
+
 // Linetests
 // -----------------------------------
 bool Linetest(const Sphere& sphere, const Line& line)
@@ -625,6 +681,20 @@ bool Linetest(const Plane& plane, const Line& line)
 
 	// Check to see for intersection
 	return t >= 0.0f && t <= 1.0f;
+}
+
+bool Linetest(const Triangle& triangle, const Line& line)
+{
+	// Create ray
+	Ray ray;
+	ray.origin = line.start;
+	ray.direction = AsNormal(line.end - line.start);
+
+	// Raycast
+	float t = Raycast(triangle, ray);
+
+	// Check if raycast is onto line
+	return t >= 0 && t * t <= LengthSq(line);
 }
 
 

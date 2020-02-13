@@ -173,6 +173,8 @@ float Raycast(const Sphere& sphere, const Ray& ray);
 float Raycast(const AABB& aabb, const Ray& ray);
 float Raycast(const OBB& obb, const Ray& ray);
 float Raycast(const Plane& plane, const Ray& ray);
+vec3 Barycentric(const Point& p, const Triangle& t);
+float Raycast(const Triangle& triangle, const Ray& ray);
 
 // Linetest - only care if it intersects (bool)
 // -----------------------------------
@@ -180,6 +182,7 @@ bool Linetest(const Sphere& sphere, const Line& line);
 bool Linetest(const AABB& aabb, const Line& line);
 bool Linetest(const OBB& obb, const Line& line);
 bool Linetest(const Plane& plane, const Line& line);
+bool Linetest(const Triangle& triangle, const Line& line);
 
 // Collision cases for Triangle
 // -----------------------------------
@@ -213,5 +216,10 @@ bool TriangleTriangle(const Triangle& t1, const Triangle& t2);
 
 // SAT cross edge for normals going to 0
 vec3 SatCrossEdge(const vec3& t1_p1, const vec3& t1_p2, const vec3& t2_p1, const vec3& t2_p2);
+// Robust collision test
+// TODO: for other collision tests
 bool TriangleTriangleRobust(const Triangle& t1,const Triangle& t2);
+
+
+
 #endif  // !_H_MYMATHS_GEOMETRY_3D
