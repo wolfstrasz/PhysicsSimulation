@@ -1,6 +1,7 @@
 #include "geometry3d.h"
 
 #include <cfloat>
+#include <list>
 #include <cmath>
 
 #define CMP(x, y) \
@@ -1007,4 +1008,282 @@ bool TriangleTriangleRobust(const Triangle& t1, const Triangle& t2)
 	}
 
 	return true; // no separating axis found
+}
+
+#define OPTIMAL_MESH_SPLIT_DEPTH 3
+// 8 = 2^3 split each dimension by 2
+#define BHV_MESH_CHILD_SPLIT_COUNT 8
+
+void AccelerateMesh(Mesh& mesh)
+{
+	if (mesh.accelerator != 0)	return;
+
+	//Find the minimum and maximum points of the mesh
+	vec3 min = mesh.vertices[0];
+	vec3 max = mesh.vertices[0];
+	for (int i = 1; i < mesh.numTriangles * 3; ++i) {
+		min.x = fminf(mesh.vertices[i].x, min.x);
+		min.y = fminf(mesh.vertices[i].y, min.y);
+		min.z = fminf(mesh.vertices[i].z, min.z);
+		max.x = fmaxf(mesh.vertices[i].x, max.x);
+		max.y = fmaxf(mesh.vertices[i].y, max.y);
+		max.z = fmaxf(mesh.vertices[i].z, max.z);
+	}
+
+	// Create a new accelerator structure within the mesh
+	// then set the AABB bounds to the min and max points of the mash
+	mesh.accelerator = new BVHNode();
+	mesh.accelerator->bounds = FromMinMax(min, max);
+	mesh.accelerator->numTriangles = mesh.numTriangles;
+
+	// Allocate memory for indices of mesh triangles 
+	// Then store to prevent duplication
+	mesh.accelerator->triangles =
+		new int[mesh.numTriangles];
+
+	// Store indices in the accelerator 
+	for (int i = 0; i < mesh.numTriangles; ++i) {
+		mesh.accelerator->triangles[i] = i;
+	}
+
+	// Recursively split the tree
+	SplitBVHNode(mesh.accelerator, mesh, OPTIMAL_MESH_SPLIT_DEPTH);
+}
+
+void SplitBVHNode(BVHNode* node, const Mesh& model, int depth)
+{
+	// Stop recursion if reached given depth
+	if (depth-- == 0) {
+		return;
+	}
+
+	// if node is a leaf and contains triangles => split it into 8 child nodes
+	if (node->children == 0) {
+		if (node->numTriangles > 0) {
+			node->children = new BVHNode[BHV_MESH_CHILD_SPLIT_COUNT];
+			vec3 c = node->bounds.origin;
+			vec3 e = node->bounds.size * 0.5f;
+			node->children[0].bounds =
+				AABB(c + vec3(-e.x, +e.y, -e.z), e);
+			node->children[1].bounds =
+				AABB(c + vec3(+e.x, +e.y, -e.z), e);
+			node->children[2].bounds =
+				AABB(c + vec3(-e.x, +e.y, +e.z), e);
+			node->children[3].bounds =
+				AABB(c + vec3(+e.x, +e.y, +e.z), e);
+			node->children[4].bounds =
+				AABB(c + vec3(-e.x, -e.y, -e.z), e);
+			node->children[5].bounds =
+				AABB(c + vec3(+e.x, -e.y, -e.z), e);
+			node->children[6].bounds =
+				AABB(c + vec3(-e.x, -e.y, +e.z), e);
+			node->children[7].bounds =
+				AABB(c + vec3(+e.x, -e.y, +e.z), e);
+		}
+	}
+
+	// If node was just split
+	// Assign each child node its triangles
+	if (node->children != 0 && node->numTriangles > 0) {
+		for (int i = 0; i < 8; ++i) { // For each child
+
+			// Count triangles a child contains
+			node->children[i].numTriangles = 0;
+			for (int j = 0; j < node->numTriangles; ++j) {
+				Triangle t = model.triangles[node->triangles[j]];
+
+				// For every intersection increase triangle count for node
+				if (TriangleAABB(t, node->children[i].bounds))
+					node->children[i].numTriangles += 1;
+			}
+
+			// If there are no triangles in the child node => do nothing
+			if (node->children[i].numTriangles == 0) continue;
+
+			// Else allocate new memory for the child node
+			node->children[i].triangles = new int[node->children[i].numTriangles];
+
+			// any triangle which intersects the child node being created,
+			// add it's index to the list of triangle indices
+			int index = 0;
+			for (int j = 0; j < node->numTriangles; ++j) {
+				Triangle t = model.triangles[node->triangles[j]];
+
+				if (TriangleAABB(t, node->children[i].bounds)) {
+					node->children[i].triangles[index++] = node->triangles[j];
+				}
+			}
+		}
+
+		// Now this node does not contain triangles
+		// just childred on nodes
+		node->numTriangles = 0;
+		delete[] node->triangles;
+		node->triangles = 0;
+
+		// Recursively call on children
+		for (int i = 0; i < 8; ++i) {
+			SplitBVHNode(&node->children[i], model, depth);
+		}
+	}
+}
+
+void FreeBVHNode(BVHNode* node)
+{
+	// Recursively free the BVH node
+	if (node->children != 0) {
+
+		// Free children
+		for (int i = 0; i < 8; ++i) FreeBVHNode(&node->children[i]);
+
+		// Remove children
+		delete[] node->children;
+		node->children = 0;
+
+		// If any triangle indices are present remove the array holding them
+		if (node->numTriangles != 0 || node->triangles != 0) {
+			delete[] node->triangles;
+			node->triangles = 0;
+			node->numTriangles = 0;
+		}
+	}
+}
+
+bool Linetest(const Mesh& mesh, const Line& line)
+{
+	// if no accelerator -> go through all triangles
+	if (mesh.accelerator == 0) {
+		for (int i = 0; i < mesh.numTriangles; ++i) {
+			if (Linetest(mesh.triangles[i], line)) {
+				return true;
+			}
+		}
+	}
+	else {
+
+		// Go from root
+		std::list<BVHNode*> toProcess;
+		toProcess.push_front(mesh.accelerator);
+
+		// Recursivley walk the BVH tree
+		while (!toProcess.empty()) {
+			BVHNode* iterator = *(toProcess.begin());
+			toProcess.erase(toProcess.begin());
+
+			// if a leaf node -> process triangles
+			if (iterator->numTriangles >= 0) {
+				// Iterate trough all triangles of the node
+				for (int i = 0; i < iterator->numTriangles; ++i) {
+					// Triangle indices in BVHNode index the mesh
+					if (Linetest(mesh.triangles[iterator->triangles[i]], line)) {
+						return true;
+					}
+				}
+			}
+
+			// if node is not a leaf -> raycast over children
+			// if children node is hit -> add it to process
+			if (iterator->children != 0) {
+				for (int i = 8 - 1; i >= 0; --i) {
+					// Only push children whos bounds intersect the test geometry
+					if (Linetest(iterator->children[i].bounds, line)) {
+						toProcess.push_front(&iterator->children[i]);
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool MeshAABB(const Mesh& mesh, const AABB& aabb)
+{
+	// if no accelerator -> go through all triangles
+	if (mesh.accelerator == 0) {
+		for (int i = 0; i < mesh.numTriangles; ++i) {
+			if (TriangleAABB(mesh.triangles[i], aabb)) {
+				return true;
+			}
+		}
+	}
+	else {
+		// process root node
+		std::list<BVHNode*> toProcess;
+		toProcess.push_front(mesh.accelerator);
+
+		// recursively proccess it and its children
+		while (!toProcess.empty()) {
+			BVHNode* iterator = *(toProcess.begin());
+			toProcess.erase(toProcess.begin());
+
+			// if a leaf node -> process triangles
+			if (iterator->numTriangles >= 0) {
+				for (int i = 0; i < iterator->numTriangles; ++i) {
+					// The TirangleAABB test here would change
+					// if we where testing a shape other than AABB
+					if (TriangleAABB( mesh.triangles[iterator->triangles[i]], aabb)) {
+						return true;
+					}
+				}
+			}
+
+			// if node is not a leaf -> raycast over children
+			// if children node is hit -> add it to process
+			if (iterator->children != 0) {
+				for (int i = 8 - 1; i >= 0; --i) {
+					// The AABBAABB test here would change
+					// if we where testing a shape other than AABB
+					if (AABBAABB(iterator->children[i].bounds,aabb)) {
+						toProcess.push_front(&iterator->children[i]);
+					}
+				}
+			}
+		}
+	}
+	// if he hit no triangle
+	return false;
+}
+
+float MeshRay(const Mesh& mesh, const Ray& ray)
+{
+	// if no accelerator struct => check all triangles
+	if (mesh.accelerator == 0) {
+		for (int i = 0; i < mesh.numTriangles; ++i) {
+			float result = Raycast(mesh.triangles[i], ray);
+			if (result >= 0) {
+				return result;
+			}
+		}
+	}
+	else {
+		// walk through the BVH tree
+		std::list<BVHNode*> toProcess;
+		toProcess.push_front(mesh.accelerator);
+		// Recursivley walk the BVH tree
+		while (!toProcess.empty()) {
+
+			// Get the current node
+			BVHNode* iterator = *(toProcess.begin());
+			toProcess.erase(toProcess.begin());
+
+			// if node has triangles => iterate over them
+			if (iterator->numTriangles >= 0) {
+				for (int i = 0; i < iterator->numTriangles; ++i) {
+					// Do a raycast against the triangle
+					float r = Raycast(mesh.triangles[iterator->triangles[i]], ray);
+					if (r >= 0) { return r;}
+				}
+			}
+			// if node is not a leaf perform a raycast agains bounds of each child
+			// if it hits a child add the node to Process list
+			if (iterator->children != 0) {
+				for (int i = 8 - 1; i >= 0; --i) {
+					if (Raycast(iterator->children[i].bounds, ray) >= 0) {
+						toProcess.push_front(&iterator->children[i]);
+					}
+				}
+			}
+		}
+	}
+	return -1;
 }

@@ -222,4 +222,42 @@ bool TriangleTriangleRobust(const Triangle& t1,const Triangle& t2);
 
 
 
+// MESHES
+// ------------------------------------------
+typedef struct Mesh {
+	int numTriangles;
+	union {
+		Triangle* triangles;//size = numTriangles
+		Point* vertices; //size = numTriangles * 3
+		float* values; //size = numTriangles * 3 * 3
+	};
+	BVHNode* accelerator;
+	Mesh() : numTriangles(0), values(0), accelerator(0) {}
+
+} Mesh;
+
+// Bounding Volume Hierarchy
+typedef struct BVHNode {
+	AABB bounds;
+	BVHNode* children;
+	int numTriangles;
+	int* triangles;
+	BVHNode() : children(0), numTriangles(0), triangles(0) {}
+} BVHNode;
+
+void AccelerateMesh(Mesh& mesh);
+void SplitBVHNode(BVHNode* node, const Mesh& model,
+	int depth);
+void FreeBVHNode(BVHNode* node);
+
+// Intersection tests
+bool Linetest(const Mesh& mesh, const Line& line);
+bool MeshSphere(const Mesh& mesh, const Sphere& sphere); // TODO: implement
+bool MeshAABB(const Mesh& mesh, const AABB& aabb); 
+bool MeshOBB(const Mesh& mesh, const OBB& obb); // TODO: implement
+bool MeshPlane(const Mesh& mesh, const Plane& plane); // TODO: implement
+bool MeshTriangle(const Mesh& mesh, const Triangle& triangle); // TODO: implement
+float MeshRay(const Mesh& mesh, const Ray& ray);
+
+
 #endif  // !_H_MYMATHS_GEOMETRY_3D
