@@ -252,12 +252,46 @@ void FreeBVHNode(BVHNode* node);
 
 // Intersection tests
 bool Linetest(const Mesh& mesh, const Line& line);
-bool MeshSphere(const Mesh& mesh, const Sphere& sphere); // TODO: implement
+bool MeshSphere(const Mesh& mesh, const Sphere& sphere);
 bool MeshAABB(const Mesh& mesh, const AABB& aabb); 
-bool MeshOBB(const Mesh& mesh, const OBB& obb); // TODO: implement
-bool MeshPlane(const Mesh& mesh, const Plane& plane); // TODO: implement
-bool MeshTriangle(const Mesh& mesh, const Triangle& triangle); // TODO: implement
+bool MeshOBB(const Mesh& mesh, const OBB& obb);
+bool MeshPlane(const Mesh& mesh, const Plane& plane);
+bool MeshTriangle(const Mesh& mesh, const Triangle& triangle); 
 float MeshRay(const Mesh& mesh, const Ray& ray);
+
+
+// Model class: contains Mesh, translation and rotation (in full engine scale)
+
+class Model {
+protected:
+	Mesh* content;
+	AABB bounds;
+public:
+	vec3 position;
+	vec3 rotation;
+	Model* parent;
+
+	inline Model() : parent(0), content(0) { }
+	inline Mesh* GetMesh() const {
+		return content;
+	}
+	inline AABB GetBounds() const {
+		return bounds;
+	}
+	void SetContent(Mesh* mesh);
+};
+
+mat4 GetWorldMatrix(const Model& model);
+OBB GetOBB(const Model& model);
+
+// Intersection tests for model
+float ModelRay(const Model& model, const Ray& ray);
+bool Linetest(const Model& model, const Line& line);
+bool ModelSphere(const Model& model, const Sphere& sphere);
+bool ModelAABB(const Model& model, const AABB& aabb);
+bool ModelOBB(const Model& model, const OBB& obb);
+bool ModelPlane(const Model& model, const Plane& plane);
+bool ModelTriangle(const Model& model, const Triangle& triangle);
 
 
 #endif  // !_H_MYMATHS_GEOMETRY_3D
