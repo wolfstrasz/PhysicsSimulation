@@ -1061,24 +1061,24 @@ void SplitBVHNode(BVHNode* node, const Mesh& model, int depth)
 	if (node->children == 0) {
 		if (node->numTriangles > 0) {
 			node->children = new BVHNode[BHV_MESH_CHILD_SPLIT_COUNT];
-			vec3 c = node->bounds.origin;
-			vec3 e = node->bounds.size * 0.5f;
+			vec3 centre = node->bounds.origin;
+			vec3 split_offset = node->bounds.size * 0.5f;
 			node->children[0].bounds =
-				AABB(c + vec3(-e.x, +e.y, -e.z), e);
+				AABB(centre + vec3(-split_offset.x, +split_offset.y, -split_offset.z), split_offset);
 			node->children[1].bounds =
-				AABB(c + vec3(+e.x, +e.y, -e.z), e);
+				AABB(centre + vec3(+split_offset.x, +split_offset.y, -split_offset.z), split_offset);
 			node->children[2].bounds =
-				AABB(c + vec3(-e.x, +e.y, +e.z), e);
+				AABB(centre + vec3(-split_offset.x, +split_offset.y, +split_offset.z), split_offset);
 			node->children[3].bounds =
-				AABB(c + vec3(+e.x, +e.y, +e.z), e);
+				AABB(centre + vec3(+split_offset.x, +split_offset.y, +split_offset.z), split_offset);
 			node->children[4].bounds =
-				AABB(c + vec3(-e.x, -e.y, -e.z), e);
+				AABB(centre + vec3(-split_offset.x, -split_offset.y, -split_offset.z), split_offset);
 			node->children[5].bounds =
-				AABB(c + vec3(+e.x, -e.y, -e.z), e);
+				AABB(centre + vec3(+split_offset.x, -split_offset.y, -split_offset.z), split_offset);
 			node->children[6].bounds =
-				AABB(c + vec3(-e.x, -e.y, +e.z), e);
+				AABB(centre + vec3(-split_offset.x, -split_offset.y, +split_offset.z), split_offset);
 			node->children[7].bounds =
-				AABB(c + vec3(+e.x, -e.y, +e.z), e);
+				AABB(centre + vec3(+split_offset.x, -split_offset.y, +split_offset.z), split_offset);
 		}
 	}
 

@@ -232,7 +232,7 @@ typedef struct Mesh {
 		float* values; //size = numTriangles * 3 * 3
 	};
 	BVHNode* accelerator;
-	Mesh() : numTriangles(0), values(0), accelerator(0) {}
+	Mesh() : numTriangles(0), values(nullptr), accelerator(nullptr) {}
 
 } Mesh;
 
@@ -242,7 +242,7 @@ typedef struct BVHNode {
 	BVHNode* children;
 	int numTriangles;
 	int* triangles;
-	BVHNode() : children(0), numTriangles(0), triangles(0) {}
+	BVHNode() : children(nullptr), numTriangles(0), triangles(nullptr) {}
 } BVHNode;
 
 void AccelerateMesh(Mesh& mesh);
@@ -279,6 +279,7 @@ public:
 		return bounds;
 	}
 	void SetContent(Mesh* mesh);
+	// TODO: add list of children for easier search
 };
 
 mat4 GetWorldMatrix(const Model& model);
