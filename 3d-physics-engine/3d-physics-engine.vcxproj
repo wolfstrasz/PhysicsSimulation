@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -124,16 +124,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mymaths\Camera.cpp" />
+    <ClCompile Include="mymaths\ControlledCamera.cpp" />
     <ClCompile Include="mymaths\geometry2d.cpp" />
     <ClCompile Include="mymaths\geometry3d.cpp" />
     <ClCompile Include="mymaths\matrices.cpp" />
+    <ClCompile Include="mymaths\Scene.cpp" />
     <ClCompile Include="mymaths\vectors.cpp" />
     <ClCompile Include="QuadTree.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mymaths\Camera.h" />
+    <ClInclude Include="mymaths\ControlledCamera.h" />
     <ClInclude Include="mymaths\geometry2d.h" />
     <ClInclude Include="mymaths\geometry3d.h" />
     <ClInclude Include="mymaths\matrices.h" />
+    <ClInclude Include="mymaths\Scene.h" />
     <ClInclude Include="mymaths\vectors.h" />
     <ClInclude Include="QuadTree.h" />
   </ItemGroup>

@@ -33,6 +33,15 @@
     <ClCompile Include="mymaths\geometry3d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mymaths\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mymaths\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mymaths\ControlledCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mymaths\vectors.h">
@@ -48,6 +57,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mymaths\geometry3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymaths\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymaths\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mymaths\ControlledCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
