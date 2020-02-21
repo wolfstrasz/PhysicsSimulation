@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera.h"
 
+
 class OrbitCamera : public Camera {
 protected:
 
@@ -31,5 +32,5 @@ public:
 
 	// Refresh at delta time
 	void Update(float dt);
-};
+
 };

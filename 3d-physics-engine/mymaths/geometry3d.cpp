@@ -879,7 +879,7 @@ bool TriangleOBB(const Triangle& t, const OBB& o)
 
 	// Test for overlaping axes to find separating AXIS
 	for (int i = 0; i < 13; ++i) {
-		if (!AreOverlapingOnAxis(a, t, test[i])) {
+		if (!AreOverlapingOnAxis(o, t, test[i])) {
 			return false; // Separating axis found
 		}
 	}
@@ -1294,7 +1294,7 @@ bool MeshOBB(const Mesh& mesh, const OBB& obb)
 	// if no accelerator -> go through all triangles
 	if (mesh.accelerator == 0) {
 		for (int i = 0; i < mesh.numTriangles; ++i) {
-			if (TriangleSphere(mesh.triangles[i], sphere)) {
+			if (TriangleOBB(mesh.triangles[i], obb)) {
 				return true;
 			}
 		}
@@ -1339,7 +1339,7 @@ bool MeshPlane(const Mesh& mesh, const Plane& plane)
 	// if no accelerator -> go through all triangles
 	if (mesh.accelerator == 0) {
 		for (int i = 0; i < mesh.numTriangles; ++i) {
-			if (TriangleSphere(mesh.triangles[i], sphere)) {
+			if (TrianglePlane(mesh.triangles[i], plane)) {
 				return true;
 			}
 		}
@@ -1384,7 +1384,7 @@ bool MeshTriangle(const Mesh& mesh, const Triangle& triangle)
 	// if no accelerator -> go through all triangles
 	if (mesh.accelerator == 0) {
 		for (int i = 0; i < mesh.numTriangles; ++i) {
-			if (TriangleSphere(mesh.triangles[i], sphere)) {
+			if (TriangleTriangle(mesh.triangles[i], triangle)) {
 				return true;
 			}
 		}
@@ -1659,3 +1659,171 @@ bool ModelTriangle(const Model& model, const Triangle& triangle)
 
 
 
+// FRUSTUM 
+// ------------------------------------------
+Point Intersection(Plane p1, Plane p2, Plane p3) {
+
+	// Following "Cramer's Rule" to solve intersection of 3 planes
+	/* http://www.purplemath.com/modules/cramers.htm. */
+
+
+	// Create coefficient matrix composed of known quantities
+	// for the system of equations for _p1, _p2, _p3	
+	mat3 D(
+		p1.normal.x, p2.normal.x, p3.normal.x,
+		p1.normal.y, p2.normal.y, p3.normal.y,
+		p1.normal.z, p2.normal.z, p3.normal.z
+	);
+
+	// Create a row matrix with the solution to each system
+	vec3 A(-p1.distance, -p2.distance, -p3.distance);
+
+
+	// create matrix which has one row replaced by the answer row (row 1)
+	mat3 Dx = D;
+	Dx._11 = A.x; Dx._12 = A.y; Dx._13 = A.z;
+
+	// create matrix which has one row replaced by the answer row (row 2)
+	mat3 Dy = D;
+	Dy._21 = A.x; Dy._22 = A.y; Dy._23 = A.z;
+
+	// create matrix which has one row replaced by the answer row (row 3)
+	mat3 Dz = D;
+	Dz._31 = A.x; Dz._32 = A.y; Dz._33 = A.z;
+
+
+	// Find determinant of original matrix
+	float detD = Determinant(D);
+	if (CMP(detD, 0)) {
+		return Point();
+	}
+
+	// Find determinant of answer matrices
+	float detDx = Determinant(Dx);
+	float detDy = Determinant(Dy);
+	float detDz = Determinant(Dz);
+
+	// Return the intersection point
+	return Point(detDx / detD, detDy / detD, detDz / detD);
+}
+
+void GetCorners(const Frustum& f, vec3* outCorners) {
+	outCorners[0] = Intersection(f.near, f.top, f.left);
+	outCorners[1] = Intersection(f.near, f.top, f.right);
+	outCorners[2] = Intersection(f.near, f.bottom, f.left);
+	outCorners[3] = Intersection(f.near, f.bottom, f.right);
+	outCorners[4] = Intersection(f.far, f.top, f.left);
+	outCorners[5] = Intersection(f.far, f.top, f.right);
+	outCorners[6] = Intersection(f.far, f.bottom, f.left);
+	outCorners[7] = Intersection(f.far, f.bottom, f.right);
+}
+
+bool Intersects(const Frustum& f, const Point& p)
+{
+	// For each plane in frustum
+	for (int i = 0; i < 6; ++i) {
+
+		// Get point's position with respect to the plane
+		vec3 normal = f.planes[i].normal;
+		float dist = f.planes[i].distance;
+		float side = Dot(p, normal) + dist;
+
+		// If the point is behind any of the planes, there is no intersection
+		// i.e. point is not inside the camera frustum
+		// points on the planes are considered not in the frustum
+		if (side < 0.0f) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Intersects(const Frustum& f, const Sphere& s)
+{
+	for (int i = 0; i < 6; ++i) {
+
+		// Get sphere's origin with respect to the plane
+		vec3 normal = f.planes[i].normal;
+		float dist = f.planes[i].distance;
+		float side = Dot(s.position, normal) + dist;
+
+		// Check if the sphere is outside of frustum 
+		// Spheres touching the planes are not considered inside
+		if (side + s.radius < 0.0f) {
+			return false;
+		}
+	}
+	return true;
+}
+
+float Classify(const AABB& aabb, const Plane& plane)
+{
+	// Find positive extends of the AABB projected onto plane's normal
+	// Similar to DOT product but returns positive number always
+	float r = fabsf(aabb.size.x * plane.normal.x)
+		+ fabsf(aabb.size.y * plane.normal.y)
+		+ fabsf(aabb.size.z * plane.normal.z);
+
+	// Find distance between origin of AABB and the plane
+	float d = Dot(plane.normal, aabb.origin) + plane.distance;
+
+	// if the AABB's extends are longer than the distance of the origin to the plane
+	// => it intersects the frustum
+	if (fabsf(d) < r) {
+		return 0.0f;
+	}
+	
+	// Return positive number if AABB is infront of a plane
+	else if (d < 0.0f) {
+		return d + r;
+	}
+	// Return negative number if AABB is behind the plane
+	return d - r;
+}
+
+float Classify(const OBB& obb, const Plane& plane)
+{
+
+	// First transform plane normal to OBB local space -> becomes a plane to AABB
+	vec3 normal = MultiplyVector(plane.normal, obb.orientation);
+
+	// Find positive extends of the OBB projected onto plane's normal
+	// Similar to DOT product but returns positive number always
+	float r = fabsf(obb.size.x * plane.normal.x)
+		+ fabsf(obb.size.y * plane.normal.y)
+		+ fabsf(obb.size.z * plane.normal.z);
+
+	// Find distance between origin of OBB and the plane
+	float d = Dot(plane.normal, obb.position) + plane.distance;
+
+	// if the AABB's extends are longer than the distance of the origin to the plane
+	// => it intersects the frustum
+	if (fabsf(d) < r) {
+		return 0.0f;
+	}
+
+	// Return positive number if OBB is infront of a plane
+	else if (d < 0.0f) {
+		return d + r;
+	}
+	// Return negative number if OBB is behind the plane
+	return d - r;
+}
+
+bool Intersects(const Frustum& f, const AABB& aabb)
+{
+	// Check the AABB against each plane of the frustum
+	for (int i = 0; i < 6; ++i) 
+		if (Classify(aabb, f.planes[i]) < 0) return false;
+
+	return true;
+}
+
+bool Intersects(const Frustum& f, const OBB& obb)
+{
+	// Check the AABB against each plane of the frustum
+	for (int i = 0; i < 6; ++i)
+		if (Classify(obb, f.planes[i]) < 0) return false;
+
+	return true;
+}

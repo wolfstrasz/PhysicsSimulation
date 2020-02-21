@@ -294,5 +294,42 @@ bool ModelOBB(const Model& model, const OBB& obb);
 bool ModelPlane(const Model& model, const Plane& plane);
 bool ModelTriangle(const Model& model, const Triangle& triangle);
 
+// FRUSTUM OBJ
+// --------------------------------
+typedef struct Frustum {
+	union {
+		struct {
+			Plane top;
+			Plane bottom;
+			Plane left;
+			Plane right;
+			Plane near;
+			Plane far;
+		};
+		Plane planes[6];
+	};
+	inline Frustum() { }
+} Frustum;
+
+// Frustum intersection functions
+
+Point Intersection(Plane p1, Plane p2, Plane p3);
+void GetCorners(const Frustum& f, vec3* outCorners);
+
+bool Intersects(const Frustum& f, const Point& p);
+bool Intersects(const Frustum& f, const Sphere& s);
+
+/*
+Classifying functions for OBB/AABB agains a plane
+If the box is behind the plane, the negative distance is returned
+If the box is in front of the plane, the positive distance is returned
+If the box intersects the plane, zero is returned
+*/
+
+float Classify(const AABB& aabb, const Plane& plane);
+float Classify(const OBB& obb, const Plane& plane);
+
+bool Intersects(const Frustum& f, const AABB& aabb);
+bool Intersects(const Frustum& f, const OBB& obb);
 
 #endif  // !_H_MYMATHS_GEOMETRY_3D
