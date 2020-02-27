@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include <algorithm>
 #include <stack>
-
+#include <list>
 
 void Scene::AddModel(Model* model) {
 
@@ -132,6 +132,50 @@ std::vector<Model*> Scene::Query(const AABB& aabb)
 		OBB bounds = GetOBB(*objects[i]);
 		if (AABBOBB(aabb, bounds)) {
 			result.push_back(objects[i]);
+		}
+	}
+	return result;
+}
+
+std::vector<Model*> Scene::Cull(const Frustum& f)
+{
+	std::vector<Model*> result;
+
+	if (octree == 0) {
+		for (int i = 0; i < objects.size(); ++i) {
+			OBB bounds = GetOBB(*(objects[i]));
+			if (Intersects(f, bounds))
+				result.push_back(objects[i]);
+		}
+	}
+
+	else {
+		std::list<OctreeNode*> nodes;
+		nodes.push_back(octree);
+
+		// Loop depth first through scene
+		while (nodes.size() > 0) {
+			OctreeNode* current_node = *nodes.begin();
+			nodes.pop_front();
+
+			// Check if not a leaf -> go through children of node
+			if (current_node->children != nullptr) {
+				for (int i = 0; i < 8; ++i) {
+					// if bounds of children intersect the frustum consider for culling
+					AABB bounds = current_node->children[i].bounds;
+					if (Intersects(f, bounds))
+						nodes.push_back(&current_node->children[i]);
+				}
+			}
+			// If a leaf go through models in node
+			else {
+				for (int i = 0; i < current_node->models.size(); ++i) {
+					OBB bounds = GetOBB(*(current_node->models[i]));
+					if (Intersects(f, bounds))
+						result.push_back(current_node->models[i]);
+				}
+
+			}
 		}
 	}
 	return result;

@@ -40,7 +40,12 @@ public:
 	std::vector<Model*> Query(const AABB& aabb);
 
 
-
+	/* 
+		If a scene is spatially divided with an Octree, this method of culling should increase render
+		time by eliminating non visible objects from being rendered. Otherwise we just linearly test 
+		all objects against the frustum and make performance worse.
+	*/
+	std::vector<Model*>Cull(const Frustum& f);
 	
 };
 
