@@ -1827,3 +1827,97 @@ bool Intersects(const Frustum& f, const OBB& obb)
 
 	return true;
 }
+
+vec3 Unproject(const vec3& viewportPoint, 
+	const vec2& viewportOrigin, 
+	const vec2& viewportSize, 
+	const mat4& view, 
+	const mat4& projection)
+{
+
+	// Normalize input vector to Viewport
+	float normalized[4] = {
+		(viewportPoint.x - viewportOrigin.x) / viewportSize.x,
+		(viewportPoint.y - viewportOrigin.y) / viewportSize.y,
+		viewportPoint.z,
+		1.0f
+	};
+
+	// translate vector into NDC space
+	float ndcSpace[4] = { normalized[0], normalized[1], normalized[2], normalized[3]};
+
+	// input is from {0 to 1} -> NDC { -1 to 1}
+	ndcSpace[0] = ndcSpace[0] * 2.0f - 1.0f; // X range
+	ndcSpace[1] = 1.0f - ndcSpace[1] * 2.0f; // Y range
+
+	// For Direct3D clamp Z: { 0 to 1}
+	if (ndcSpace[2] < 0.0f) { // for OpenGL can use the above method instead
+		ndcSpace[2] = 0.0f;
+	}
+	if (ndcSpace[2] > 1.0f) {
+		ndcSpace[2] = 1.0f;
+	}
+
+	// Transform NDC vector into eye space
+	mat4 invProjection = Inverse(projection);
+	
+	// This will transform the NDC space to eye space
+	// eyeSpace = MultiplyPoint(ndcSpace, invProjection);
+	float eyeSpace[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	Multiply(eyeSpace, ndcSpace, 1, 4, invProjection.asArray, 4, 4);
+
+	mat4 invView = Inverse(view);
+	// Translate from eye space to world space
+	// worldSpace = MultiplyPoint(eyeSpace, invView);
+	float worldSpace[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	Multiply(worldSpace, eyeSpace, 1, 4, invView.asArray, 4, 4);
+
+	// Undo the prespective divide (fourth component of world space vector)
+	if (!CMP(worldSpace[3], 0.0f)) {
+		worldSpace[0] /= worldSpace[3];
+		worldSpace[1] /= worldSpace[3];
+		worldSpace[2] /= worldSpace[3];
+	}
+	// Can add worldSpace[3] /= worldspace [3]; and return a vec4
+	return vec3(worldSpace[0], worldSpace[1],worldSpace[2]);
+}
+
+Ray GetPickRay(const vec2& viewportPoint, 
+	const vec2& viewportOrigin, 
+	const vec2& viewportSize, 
+	const mat4& view, 
+	const mat4& projection)
+{
+
+	// Construct near and far point
+	vec3 nearPoint(viewportPoint.x, viewportPoint.y, 0.0f); // OpenGL should use -1.0f instead of 0.0f
+	vec3 farPoint(viewportPoint.x, viewportPoint.y, 1.0f);
+
+	// Unproject near and far points to create the ray components
+	vec3 pNear = Unproject(nearPoint, viewportOrigin, viewportSize, view, projection);
+	vec3 pFar = Unproject(farPoint, viewportOrigin, viewportSize, view, projection);
+
+	// Create ray
+	vec3 normal = AsNormal(pFar - pNear);
+	vec3 origin = pNear;
+
+	// ray can be used to raycast into a scene from the perspective of the viewer
+	return Ray(origin, normal);
+
+	 // Picking use case 
+	/*
+		vec2 screenOrigin = vec2(0.0f, 0.0f);
+		vec3 screenSize = vec2(GetWidth(), GetHeight());
+		mat4 view = camera.GetViewMatrix();
+		mat4 projection = camera.GetProjectionMatrix();
+		Ray ray = GetPickRay(mousePosition, screenOrigin, screenSize, view, projection);
+		std::vector<Model*> visible = scene->Cull(camera.GetFrustum());
+		Model* selectedModel = scene->Raycast(ray);
+		for (int i = 0; i<visible.size(); ++i) {
+			if (visible[i] == selectedModel) {
+				// TODO: Indicate that current model is selected
+			}
+			Render(visible[i]);
+		}
+	*/
+}

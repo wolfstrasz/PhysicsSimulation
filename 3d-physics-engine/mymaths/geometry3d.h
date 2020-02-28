@@ -332,4 +332,25 @@ float Classify(const OBB& obb, const Plane& plane);
 bool Intersects(const Frustum& f, const AABB& aabb);
 bool Intersects(const Frustum& f, const OBB& obb);
 
+
+// Picked pixel -> Unprojected picked vec3 -> ray cast to find picked object
+// ------------------------------------------------------------------------
+
+// UNPROJECTION of a pixel to a world space
+// Note: for implementation into NDjinn
+// for DirectX its z {0 to 1} for OpenGL { -1 to 1}
+vec3 Unproject(const vec3& viewportPoint,
+	const vec2& viewportOrigin,
+	const vec2& viewportSize,
+	const mat4& view, 
+	const mat4& projection);
+
+
+// Create ray
+Ray GetPickRay(const vec2& viewportPoint,
+	const vec2& viewportOrigin,
+	const vec2& viewportSize,
+	const mat4& view, 
+	const mat4& projection);
+
 #endif  // !_H_MYMATHS_GEOMETRY_3D
