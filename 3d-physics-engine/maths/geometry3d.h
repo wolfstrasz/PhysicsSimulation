@@ -224,6 +224,16 @@ bool TriangleTriangleRobust(const Triangle& t1,const Triangle& t2);
 
 // MESHES
 // ------------------------------------------
+// Bounding Volume Hierarchy
+typedef struct BVHNode {
+	AABB bounds;
+	BVHNode* children;
+	int numTriangles;
+	int* triangles;
+	BVHNode() : children(nullptr), numTriangles(0), triangles(nullptr) {}
+} BVHNode;
+
+
 typedef struct Mesh {
 	int numTriangles;
 	union {
@@ -236,14 +246,6 @@ typedef struct Mesh {
 
 } Mesh;
 
-// Bounding Volume Hierarchy
-typedef struct BVHNode {
-	AABB bounds;
-	BVHNode* children;
-	int numTriangles;
-	int* triangles;
-	BVHNode() : children(nullptr), numTriangles(0), triangles(nullptr) {}
-} BVHNode;
 
 void AccelerateMesh(Mesh& mesh);
 void SplitBVHNode(BVHNode* node, const Mesh& model,

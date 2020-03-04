@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "QuadTree.h"
-#include "mymaths/vectors.h"
+#include "app/QuadTree.h"
+#include "maths/vectors.h"
 
 int main() {
   std::cout << "Initialised\n";

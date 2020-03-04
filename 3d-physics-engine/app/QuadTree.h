@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "mymaths/Geometry2D.h"
+#include "../maths/geometry2d.h"
 
 using std::vector;
 

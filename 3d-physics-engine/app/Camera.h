@@ -1,6 +1,6 @@
 #pragma once
-#include "matrices.h"
-#include "Frustum.h"
+#include "../maths/matrices.h"
+#include "../maths/geometry3d.h"
 
 class Camera {
 protected:
@@ -32,6 +32,7 @@ public:
 
 	bool IsOrthographic();
 	bool IsPerspective();
+
 	bool IsOrthoNormal();
 	void OrthoNormalize();
 

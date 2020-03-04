@@ -1,10 +1,24 @@
 #ifndef _H_SCENE_
 #define _H_SCENE_
-#include "Geometry3D.h"
+#include "../maths/geometry3d.h"
 #include <vector>
 
 #define SPLIT_SCENE_CONSTANT 5
 // 5 was a proposed optimal constant.
+
+// OcreeNode to split the scene similar to BVH for the model
+typedef struct OctreeNode {
+	AABB bounds;
+	OctreeNode* children = nullptr;
+	std::vector<Model*> models;
+	inline OctreeNode() : children(nullptr) { }
+	inline ~OctreeNode() {
+		if (children != nullptr) {
+			delete[] children;
+		}
+	}
+
+} OctreeNode;
 
 class Scene {
 protected:
@@ -49,18 +63,7 @@ public:
 	
 };
 
-// OcreeNode to split the scene similar to BVH for the model
-typedef struct OctreeNode {
-	AABB bounds;
-	OctreeNode* children = nullptr;
-	std::vector<Model*> models;
-	inline OctreeNode() : children(nullptr) { }
-	inline ~OctreeNode() {
-		if (children != nullptr) {
-			delete[] children;
-		}
-	}
-} OctreeNode;
+
 
 void SplitTree(OctreeNode* node, int depth);
 

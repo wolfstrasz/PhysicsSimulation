@@ -18,55 +18,88 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\vectors.cpp">
+    <ClCompile Include="maths\geometry2d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\matrices.cpp">
+    <ClCompile Include="maths\geometry3d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\geometry2d.cpp">
+    <ClCompile Include="maths\matrices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuadTree.cpp">
+    <ClCompile Include="maths\vectors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\geometry3d.cpp">
+    <ClCompile Include="app\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\Scene.cpp">
+    <ClCompile Include="app\ControlledCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\Camera.cpp">
+    <ClCompile Include="app\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mymaths\ControlledCamera.cpp">
+    <ClCompile Include="app\GLWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app\QuadTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mymaths\vectors.h">
+    <ClInclude Include="maths\geometry2d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\matrices.h">
+    <ClInclude Include="maths\geometry3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\geometry2d.h">
+    <ClInclude Include="maths\matrices.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuadTree.h">
+    <ClInclude Include="maths\vectors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\geometry3d.h">
+    <ClInclude Include="app\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\Scene.h">
+    <ClInclude Include="app\ControlledCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\Camera.h">
+    <ClInclude Include="app\key_binds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mymaths\ControlledCamera.h">
+    <ClInclude Include="app\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="app\GLWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glfw3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glfw3native.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\khrplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app\QuadTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\glfw3.lib" />
   </ItemGroup>
 </Project>

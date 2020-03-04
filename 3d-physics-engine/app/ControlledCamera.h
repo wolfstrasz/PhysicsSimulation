@@ -2,7 +2,7 @@
 #include "Camera.h"
 
 
-class OrbitCamera : public Camera {
+class ControlledCamera : public Camera {
 protected:
 
 	vec3 target;
@@ -18,12 +18,11 @@ protected:
 	vec2 yRotationLimit; // x = min, y = max
 	vec2 currentRotation;
 
-	// Helper function so angle stays within 360 and -360 range
-	float ClampAngle(float angle, float min, float max);
+	
 
 public:
-	OrbitCamera();
-	inline virtual ~OrbitCamera() { }
+	ControlledCamera();
+	inline virtual ~ControlledCamera() { }
 
 	// Control functions
 	void Rotate(const vec2& deltaRot, float deltaTime);
@@ -32,5 +31,13 @@ public:
 
 	// Refresh at delta time
 	void Update(float dt);
+
+	// Helper function so angle stays within 360 and -360 range
+	float ClampAngle(float angle, float min, float max);
+
+	// Setters
+	void SetTarget(const vec3& newTarget);
+	void SetZoom(float zoom);
+	void SetRotation(const vec2& rotation);
 
 };

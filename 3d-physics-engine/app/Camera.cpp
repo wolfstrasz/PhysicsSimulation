@@ -180,7 +180,7 @@ Frustum Camera::GetFrustum()
 	}
 	return result;
 }
-}
+
 
 void Camera::SetProjection(const mat4& projection) {
 	m_Proj = projection;

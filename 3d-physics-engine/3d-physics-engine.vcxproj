@@ -69,7 +69,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(SolutionDir)\libs;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>$(SolutionDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(SolutionDir)\libs;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>$(SolutionDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -90,6 +97,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -120,28 +128,42 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app\GLWindow.cpp" />
+    <ClCompile Include="app\Window.cpp" />
+    <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="mymaths\Camera.cpp" />
-    <ClCompile Include="mymaths\ControlledCamera.cpp" />
-    <ClCompile Include="mymaths\geometry2d.cpp" />
-    <ClCompile Include="mymaths\geometry3d.cpp" />
-    <ClCompile Include="mymaths\matrices.cpp" />
-    <ClCompile Include="mymaths\Scene.cpp" />
-    <ClCompile Include="mymaths\vectors.cpp" />
-    <ClCompile Include="QuadTree.cpp" />
+    <ClCompile Include="app\Camera.cpp" />
+    <ClCompile Include="app\ControlledCamera.cpp" />
+    <ClCompile Include="maths\geometry2d.cpp" />
+    <ClCompile Include="maths\geometry3d.cpp" />
+    <ClCompile Include="maths\matrices.cpp" />
+    <ClCompile Include="app\Scene.cpp" />
+    <ClCompile Include="maths\vectors.cpp" />
+    <ClCompile Include="app\QuadTree.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mymaths\Camera.h" />
-    <ClInclude Include="mymaths\ControlledCamera.h" />
-    <ClInclude Include="mymaths\geometry2d.h" />
-    <ClInclude Include="mymaths\geometry3d.h" />
-    <ClInclude Include="mymaths\matrices.h" />
-    <ClInclude Include="mymaths\Scene.h" />
-    <ClInclude Include="mymaths\vectors.h" />
-    <ClInclude Include="QuadTree.h" />
+    <ClInclude Include="app\Camera.h" />
+    <ClInclude Include="app\ControlledCamera.h" />
+    <ClInclude Include="app\GLWindow.h" />
+    <ClInclude Include="app\key_binds.h" />
+    <ClInclude Include="app\Window.h" />
+    <ClInclude Include="include\glad.h" />
+    <ClInclude Include="include\glfw3.h" />
+    <ClInclude Include="include\glfw3native.h" />
+    <ClInclude Include="include\khrplatform.h" />
+    <ClInclude Include="maths\geometry2d.h" />
+    <ClInclude Include="maths\geometry3d.h" />
+    <ClInclude Include="maths\matrices.h" />
+    <ClInclude Include="app\Scene.h" />
+    <ClInclude Include="maths\vectors.h" />
+    <ClInclude Include="app\QuadTree.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\glfw3.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

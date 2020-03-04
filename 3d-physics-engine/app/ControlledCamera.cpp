@@ -1,6 +1,6 @@
 #include "ControlledCamera.h"
 
-OrbitCamera::OrbitCamera() {
+ControlledCamera::ControlledCamera() {
 	target = vec3(0, 0, 0);
 	zoomDistance = 10.0f;
 	zoomSpeed = 200.0f;
@@ -11,7 +11,7 @@ OrbitCamera::OrbitCamera() {
 	panSpeed = vec2(180.0f, 180.0f);
 }
 
-void OrbitCamera::Rotate(const vec2& deltaRot, float deltaTime) {
+void ControlledCamera::Rotate(const vec2& deltaRot, float deltaTime) {
 	currentRotation.x += deltaRot.x * rotationSpeed.x * zoomDistance * deltaTime;
 	currentRotation.y += deltaRot.y * rotationSpeed.y * zoomDistance * deltaTime;
 
@@ -19,7 +19,7 @@ void OrbitCamera::Rotate(const vec2& deltaRot, float deltaTime) {
 	currentRotation.y = ClampAngle(currentRotation.y, yRotationLimit.x, yRotationLimit.y);
 }
 
-void OrbitCamera::Zoom(float deltaZoom, float deltaTime) {
+void ControlledCamera::Zoom(float deltaZoom, float deltaTime) {
 	zoomDistance = zoomDistance + deltaZoom * zoomSpeed * deltaTime;
 
 	// Clamp zoom distance (if disabled then camera can free move forward)
@@ -31,7 +31,7 @@ void OrbitCamera::Zoom(float deltaZoom, float deltaTime) {
 	}
 }
 
-void OrbitCamera::Pan(const vec2& delataPan, float deltaTime) {
+void ControlledCamera::Pan(const vec2& delataPan, float deltaTime) {
 
 	vec3 right(m_World._11, m_World._12, m_World._13);
 
@@ -44,7 +44,7 @@ void OrbitCamera::Pan(const vec2& delataPan, float deltaTime) {
 	target = target + (vec3(0, 1, 0) * yPanMag);
 }
 
-void OrbitCamera::Update(float dt) {
+void ControlledCamera::Update(float dt) {
 	vec3 rotation = vec3(currentRotation.y, currentRotation.x, 0);
 	mat3 orient = Rotation3x3(rotation.x, rotation.y, rotation.z);
 	vec3 direction = MultiplyVector( vec3(0.0, 0.0, -zoomDistance), orient);
@@ -54,7 +54,7 @@ void OrbitCamera::Update(float dt) {
 	m_World = Inverse(LookAt(position, target, vec3(0, 1, 0)));
 }
 
-float OrbitCamera::ClampAngle(float angle, float min, float max) {
+float ControlledCamera::ClampAngle(float angle, float min, float max) {
 	while (angle < -360) {
 		angle += 360;
 	}
@@ -68,4 +68,16 @@ float OrbitCamera::ClampAngle(float angle, float min, float max) {
 		angle = max;
 	}
 	return angle;
+}
+
+void ControlledCamera::SetTarget(const vec3& newTarget) {
+	target = newTarget;
+}
+
+void ControlledCamera::SetZoom(float zoom) {
+	zoomDistance = zoom;
+}
+
+void ControlledCamera::SetRotation(const vec2& rotation) {
+	currentRotation = rotation;
 }

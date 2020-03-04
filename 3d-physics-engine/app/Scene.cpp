@@ -40,7 +40,7 @@ bool Scene::Accelerate(const vec3& position, float size)
 	octree = new OctreeNode();
 	octree->bounds = FromMinMax(min, max);
 	octree->children = nullptr;
-	for (int i = 0, size = objects.size(); i < size; ++i) {
+	for (int i = 0; i < objects.size(); ++i) {
 		octree->models.push_back(objects[i]);
 	}
 
@@ -53,7 +53,7 @@ std::vector<Model*> Scene::FindChildren(const Model* model)
 	std::vector<Model*> result;
 
 	// go through all objects to find children of model
-	for (int i = 0, size = objects.size(); i < size; ++i) {
+	for (int i = 0; i < objects.size(); ++i) {
 
 		// avoid nullptr and ignore root model of search
 		if (objects[i] == nullptr || objects[i] == model) {
@@ -84,7 +84,7 @@ Model* Scene::Raycast(const Ray& ray)
 	float result_distance = -1;
 
 	// Find closest object 
-	for (int i = 0, size = objects.size(); i < size; ++i) {
+	for (int i = 0; i < objects.size(); ++i) {
 		float distance = ModelRay(*objects[i], ray);
 		if (result == nullptr && distance >= 0) {
 			result = objects[i];
@@ -108,7 +108,7 @@ std::vector<Model*> Scene::Query(const Sphere& sphere)
 
 	// Go through obejects in scene and find intersections with the sphere
 	// A model counts as one even if it is split into a tree of smaller objects
-	for (int i = 0, size = objects.size(); i < size; ++i) {
+	for (int i = 0; i < objects.size(); ++i) {
 		OBB bounds = GetOBB(*objects[i]);
 		if (SphereOBB(sphere, bounds)) {
 			result.push_back(objects[i]);
@@ -128,7 +128,7 @@ std::vector<Model*> Scene::Query(const AABB& aabb)
 
 	// Go through obejects in scene and find intersections with the AABB
 	// A model counts as one even if it is split into a tree of smaller objects
-	for (int i = 0, size = objects.size(); i < size; ++i) {
+	for (int i = 0; i < objects.size(); ++i) {
 		OBB bounds = GetOBB(*objects[i]);
 		if (AABBOBB(aabb, bounds)) {
 			result.push_back(objects[i]);
@@ -214,8 +214,7 @@ void SplitTree(OctreeNode* node, int depth)
 	// If node contains models and has children, send models to children
 	if (node->children != 0 && node->models.size() > 0) {
 		for (int i = 0; i < 8; ++i) { // For each child
-			for (int j = 0, size = node->models.size();
-				j < size; ++j) {
+			for (int j = 0; j < node->models.size(); ++j) {
 
 				// Add models which OBB intersects the child node OBB
 				OBB bounds = GetOBB(*node->models[j]);
@@ -297,7 +296,7 @@ Model* FindClosest(const std::vector<Model*>& set, const Ray& ray)
 	float closest_t = -1.0f;
 
 	// Raycast over every model
-	for (int i = 0, size = set.size(); i < size; ++i) {
+	for (int i = 0; i < set.size(); ++i) {
 		float this_t = ModelRay(*set[i], ray);
 
 		// If Raycast didnt hit => skip it
@@ -346,7 +345,7 @@ std::vector<Model*> Query(OctreeNode* node, const Sphere& sphere)
 	if (SphereAABB(sphere, node->bounds)) {
 		if (node->children == nullptr) { // If a leaf node
 
-			for (int i = 0, size = node->models.size(); i < size; ++i) {
+			for (int i = 0; i < node->models.size(); ++i) {
 				OBB bounds = GetOBB(*(node->models[i]));
 				// Add models which OBB intersects with the sphere
 				if (SphereOBB(sphere, bounds)) {
@@ -374,7 +373,7 @@ std::vector<Model*> Query(OctreeNode* node, const AABB& aabb)
 	// Check if sphere intersects the node bounds
 	if (AABBAABB(aabb, node->bounds)) {
 		if (node->children == nullptr) { // If a leaf node
-			for (int i = 0, size = node->models.size(); i < size; ++i) {
+			for (int i = 0; i < node->models.size(); ++i) {
 
 				OBB bounds = GetOBB(*(node->models[i]));
 				// Add models which OBB intersects with the AABB
