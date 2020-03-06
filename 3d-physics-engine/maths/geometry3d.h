@@ -167,14 +167,24 @@ bool OBBPlane(const OBB& obb, const Plane& plane);
 // -----------------------------------
 bool PlanePlane(const Plane& plane1, const Plane& plane2);
 
+
+// Raycasting results
+typedef struct RaycastResult {
+	vec3 point;
+	vec3 normal;
+	float t;
+	bool hit;
+} RaycastResult;
+void ResetRaycastResult(RaycastResult* outResult);
+
 // Raycasting - care if it intersects and how much time it takes
 // -----------------------------------
-float Raycast(const Sphere& sphere, const Ray& ray);
-float Raycast(const AABB& aabb, const Ray& ray);
-float Raycast(const OBB& obb, const Ray& ray);
-float Raycast(const Plane& plane, const Ray& ray);
+bool Raycast(const Sphere& sphere, const Ray& ray, RaycastResult* storeResult = nullptr);
+bool Raycast(const AABB& aabb, const Ray& ray, RaycastResult* storeResult = nullptr);
+bool Raycast(const OBB& obb, const Ray& ray, RaycastResult* storeResult = nullptr);
+bool Raycast(const Plane& plane, const Ray& ray, RaycastResult* storeResult = nullptr);
+bool Raycast(const Triangle& triangle, const Ray& ray, RaycastResult* storeResult = nullptr);
 vec3 Barycentric(const Point& p, const Triangle& t);
-float Raycast(const Triangle& triangle, const Ray& ray);
 
 // Linetest - only care if it intersects (bool)
 // -----------------------------------
@@ -354,5 +364,7 @@ Ray GetPickRay(const vec2& viewportPoint,
 	const vec2& viewportSize,
 	const mat4& view, 
 	const mat4& projection);
+
+
 
 #endif  // !_H_MYMATHS_GEOMETRY_3D

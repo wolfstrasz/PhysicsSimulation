@@ -395,8 +395,25 @@ bool PlanePlane(const Plane& plane1, const Plane& plane2) {
 
 // Raycasting
 // -----------------------------------
-float Raycast(const Sphere& sphere, const Ray& ray)
+// helper func
+
+
+void ResetRaycastResult(RaycastResult* outResult) {
+	if (outResult != nullptr) {
+		outResult->t = -1.0f;
+		outResult->hit = false;
+		outResult->normal = vec3(0.0f, 0.0f, 1.0f);
+		outResult->point = vec3(0.0f, 0.0f, 0.0f);
+	}
+}
+
+inline float noZeroDirection(float direction) { return CMP(direction, 0.0f) ? 0.00001f : direction;  }
+
+bool Raycast(const Sphere& sphere, const Ray& ray, RaycastResult* storeResult)
 {
+	// Reset result (just in case)
+	ResetRaycastResult(storeResult);
+
 	vec3 e = sphere.position - ray.origin;
 
 	// Store squared radiuses and maginitudes
@@ -410,72 +427,100 @@ float Raycast(const Sphere& sphere, const Ray& ray)
 	float bSq = eSq - (a * a);
 	float f = sqrt(rSq - bSq);
 
+	// Start by assuming an intersection
+	float t = a - f;
+
 	// No collision has happened
 	if (rSq - (eSq - (a * a)) < 0.0f) {
-		return -1; // -1 is invalid.
+		return false; // -1 is invalid.
 	}
 	// Ray starts inside the sphere
 	else if (eSq < rSq) {
-		return a + f; // Just reverse direction
+		t = a + f; // Just reverse direction
 	}
-	// else Normal intersection
-	return a - f;
+
+	// If there was an intersection calculate result
+	if (storeResult != nullptr) {
+		storeResult->t = t;
+		storeResult->hit = true;
+		storeResult->point = ray.origin + ray.direction * t;
+		storeResult->normal = AsNormal(storeResult->point - sphere.position);
+	}
+	return true;
 }
 
-float Raycast(const AABB& aabb, const Ray& ray)
+bool Raycast(const AABB& aabb, const Ray& ray, RaycastResult* storeResult)
 {
+	// Reset result (just in case)
+	ResetRaycastResult(storeResult);
+
 	vec3 min = GetMin(aabb);
 	vec3 max = GetMax(aabb);
 
 	// Find the both intersections of the ray against each of the three slabs which make up a bounding box
-	float t1 = (min.x - ray.origin.x) / ray.direction.x;
-	float t2 = (max.x - ray.origin.x) / ray.direction.x;
-	float t3 = (min.y - ray.origin.y) / ray.direction.y;
-	float t4 = (max.y - ray.origin.y) / ray.direction.y;
-	float t5 = (min.z - ray.origin.z) / ray.direction.z;
-	float t6 = (max.z - ray.origin.z) / ray.direction.z;
+	// if a direction is too small it might be represented by 0! check for this and give it 0.00001f
+	float t1 = (min.x - ray.origin.x) / noZeroDirection(ray.direction.x);
+	float t2 = (max.x - ray.origin.x) / noZeroDirection(ray.direction.x);
+	float t3 = (min.y - ray.origin.y) / noZeroDirection(ray.direction.y);
+	float t4 = (max.y - ray.origin.y) / noZeroDirection(ray.direction.y);
+	float t5 = (min.z - ray.origin.z) / noZeroDirection(ray.direction.z);
+	float t6 = (max.z - ray.origin.z) / noZeroDirection(ray.direction.z);
 
 	// To find the point of entry, we need to find the largest minimum value.
 	// To find the point of exit, we need to find the smallest minimum value.
 
 	// Find largest min value
-	float tmin = fmaxf(
-		fmaxf(
-			fminf(t1, t2),
-			fminf(t3, t4)
-		),
-		fminf(t5, t6)
-	);
+	float tmin = fmaxf(fmaxf(fminf(t1, t2),fminf(t3, t4)),fminf(t5, t6));
 
 	// Find smallex max val
-	float tmax = fminf(
-		fminf(
-			fmaxf(t1, t2),
-			fmaxf(t3, t4)
-		),
-		fmaxf(t5, t6)
-	);
+	float tmax = fminf(fminf(fmaxf(t1, t2),fmaxf(t3, t4)),fmaxf(t5, t6));
 
 	// Check if intersects from behind
 	if (tmax < 0) {
-		return -1;
+		return false;
 	}
 
 	// Check for general intersection
 	if (tmin > tmax) {
-		return -1;
+		return false;
 	}
 
 	// Check if ray origin is inside of the box
 	// tmin < zero => yes and tmax is valid collision point
-	if (tmin < 0.0f) {
-		return tmax;
+	float t = tmin < 0.0f ? tmax : tmin;
+
+	// Calculate Raycast result
+	if (storeResult != nullptr) {
+		storeResult->hit = true;
+		storeResult->t = t;
+		storeResult->point = ray.origin + ray.direction * t;
+
+		vec3 normals[] = {
+			X,			// +x
+			X * -1.0f,	// -x
+			Y,			// +y
+			Y * -1.0f,	// -y
+			Z,			// +z
+			Z * -1.0f	// -z
+		};
+
+		if (CMP(t, t1)) storeResult->normal = AsNormal(normals[0]);
+		if (CMP(t, t2)) storeResult->normal = AsNormal(normals[1]);
+		if (CMP(t, t3)) storeResult->normal = AsNormal(normals[2]);
+		if (CMP(t, t4)) storeResult->normal = AsNormal(normals[3]);
+		if (CMP(t, t5)) storeResult->normal = AsNormal(normals[4]);
+		if (CMP(t, t6)) storeResult->normal = AsNormal(normals[5]);
+
 	}
-	return tmin;
+
+	return true;
 }
 
-float Raycast(const OBB& obb, const Ray& ray)
+bool Raycast(const OBB& obb, const Ray& ray, RaycastResult* storeResult)
 {
+	// Reset result (just in case)
+	ResetRaycastResult(storeResult);
+
 	const float* o = obb.orientation.asArray;
 	const float* size = obb.size.asArray;
 	// X, Y and Z axis of OBB
@@ -484,89 +529,157 @@ float Raycast(const OBB& obb, const Ray& ray)
 	vec3 Z(o[6], o[7], o[8]);
 
 	// Find a vector pointing from origin of ray to OBB
-	vec3 p = obb.position - ray.origin;
+	vec3 rayAsVector = obb.position - ray.origin;
 
 	// Project the direction onto each of the axis
-	vec3 f(
+	vec3 dirAxisProj(
 		Dot(X, ray.direction),
 		Dot(Y, ray.direction),
 		Dot(Z, ray.direction)
 	);
 
 	// Project vector P onto each axis of rotation
-	vec3 e(
-		Dot(X, p),
-		Dot(Y, p),
-		Dot(Z, p)
+	vec3 rayAxisProj(
+		Dot(X, rayAsVector),
+		Dot(Y, rayAsVector),
+		Dot(Z, rayAsVector)
 	);
 
 	// Calcualte all max and mins line in AABB
-	float t[6] = { 0, 0, 0, 0, 0, 0 };
-	for (int i = 0; i < 3; ++i) {
-		if (CMP(f[i], 0)) {
-			// If the ray is parallel to the slab being tested, and the origin of the ray is not inside the
-			// slab we have no hit
-			if (-e[i] - size[i] > 0 || -e[i] + size[i] < 0) {
-				return -1;
-			}
-			f[i] = 0.00001f; // Avoid div by 0!
+	if (CMP(dirAxisProj.x, 0)) {
+		if (-rayAxisProj.x - obb.size.x > 0 || -rayAxisProj.x + obb.size.x < 0) {
+			return -1;
 		}
-		t[i * 2 + 0] = (e[i] + size[i]) / f[i]; // min
-		t[i * 2 + 1] = (e[i] - size[i]) / f[i]; // max
+		dirAxisProj.x = 0.00001f; // Avoid div by 0!
+	}
+	else if (CMP(dirAxisProj.y, 0)) {
+		if (-rayAxisProj.y - obb.size.y > 0 || -rayAxisProj.y + obb.size.y < 0) {
+			return -1;
+		}
+		dirAxisProj.y = 0.00001f; // Avoid div by 0!
+	}
+	else if (CMP(dirAxisProj.z, 0)) {
+		if (-rayAxisProj.z - obb.size.z > 0 || -rayAxisProj.z + obb.size.z < 0) {
+			return -1;
+		}
+		dirAxisProj.z = 0.00001f; // Avoid div by 0!
 	}
 
-	// Find min and max values
-	float tmin = fmaxf(
-		fmaxf(
-			fminf(t[0], t[1]),
-			fminf(t[2], t[3])),
-		fminf(t[4], t[5])
-	);
-	float tmax = fminf(
-		fminf(
-			fmaxf(t[0], t[1]),
-			fmaxf(t[2], t[3])),
-		fmaxf(t[4], t[5])
-	);
+	float t1 = (rayAxisProj.x + obb.size.x) / dirAxisProj.x;
+	float t2 = (rayAxisProj.x - obb.size.x) / dirAxisProj.x;
+	float t3 = (rayAxisProj.y + obb.size.y) / dirAxisProj.y;
+	float t4 = (rayAxisProj.y - obb.size.y) / dirAxisProj.y;
+	float t5 = (rayAxisProj.z + obb.size.z) / dirAxisProj.z;
+	float t6 = (rayAxisProj.z - obb.size.z) / dirAxisProj.z;
+
+	float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+	float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
 
 	// tmax < 0 => ray origin from behind (doesn't count)
 	if (tmax < 0) {
-		return -1.0f;
+		return false;
 	}
 
 	// tmin > tmax => ray does not intersect
 	if (tmin > tmax) {
-		return -1.0f;
+		return false;
 	}
 
-	// tmin < 0 => origin of ray is inside OBB
-	if (tmin < 0.0f) {
-		return tmax;
+	// tmin < 0 => origin of ray is inside OBB (tmax is closer)
+	float t = tmin < 0.0f ? tmax : tmin;
+	
+	// Calculate Raycast result
+	if (storeResult != nullptr) {
+		storeResult->hit = true;
+		storeResult->t = t;
+		storeResult->point = ray.origin + ray.direction * t;
+
+		vec3 normals[] = {
+			X,			// +x
+			X * -1.0f,	// -x
+			Y,			// +y
+			Y * -1.0f,	// -y
+			Z,			// +z
+			Z * -1.0f	// -z
+		};
+
+		if (CMP(t, t1)) storeResult->normal = AsNormal(normals[0]);
+		if (CMP(t, t2)) storeResult->normal = AsNormal(normals[1]);
+		if (CMP(t, t3)) storeResult->normal = AsNormal(normals[2]);
+		if (CMP(t, t4)) storeResult->normal = AsNormal(normals[3]);
+		if (CMP(t, t5)) storeResult->normal = AsNormal(normals[4]);
+		if (CMP(t, t6)) storeResult->normal = AsNormal(normals[5]);
+
 	}
 
-	// Else return closes point
-	return tmin;
+	return true;
 }
 
-float Raycast(const Plane& plane, const Ray& ray)
+bool Raycast(const Plane& plane, const Ray& ray, RaycastResult* storeResult)
 {
-	float nd = Dot(ray.direction, plane.normal);
-	float pn = Dot(ray.origin, plane.normal);
+	// Reset result (just in case)
+	ResetRaycastResult(storeResult);
+
+	float rd_pn = Dot(ray.direction, plane.normal);
+	float ro_pn = Dot(ray.origin, plane.normal);
 
 	// nd has to be < 0 for ray to intersect
 	// else normal of plane and ray point in same direction
-	if (nd >= 0.0f) {
-		return -1;
-	}
+	if (rd_pn >= 0.0f) { return false; }
 
 	// obtain time
-	float t = (plane.distance - pn) / nd;
+	float t = (plane.distance - ro_pn) / rd_pn;
 
 	// check if ray is hit plane from behind (i.e no hit)
 	if (t >= 0.0f) {
-		return t;
+
+		if (storeResult != nullptr) {
+			storeResult->t = t;
+			storeResult->hit = true;
+			storeResult->point = ray.origin + ray.direction * t;
+			storeResult->normal = AsNormal(plane.normal);
+		}
+		return true;
 	}
-	return -1;
+	return false;
+}
+
+bool Raycast(const Triangle& triangle, const Ray& ray, RaycastResult* storeResult)
+{
+	// Reset result (just in case)
+	ResetRaycastResult(storeResult);
+
+	// Create a plane and raycast to plane if no hit => no hit on triangle
+	Plane plane = FromTriangle(triangle);
+	RaycastResult planeRaycastResult;
+	if (!Raycast(plane, ray, &planeRaycastResult)) return false;
+
+	// Get a point along plane where ray hit
+	float t = planeRaycastResult.t;
+
+	// Afterwards check for barycentric coords beacause
+	// barycentric gives if a point is inside the "volume" of a triangle
+
+	// Find point on plane that was hit
+	Point result = ray.origin + ray.direction * t;
+
+	// Find barycentric coords of the point on the triangle
+	vec3 barycentric = Barycentric(result, triangle);
+
+	// If point is within triangle ray hit it
+	if (barycentric.x >= 0.0f && barycentric.x <= 1.0f &&
+		barycentric.y >= 0.0f && barycentric.y <= 1.0f &&
+		barycentric.z >= 0.0f && barycentric.z <= 1.0f) {
+		if (storeResult != nullptr) {
+			storeResult->t = t;
+			storeResult->hit = true;
+			storeResult->point = ray.origin + ray.direction * t;
+			storeResult->normal = plane.normal;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 vec3 Barycentric(const Point& p, const Triangle& t)
@@ -598,32 +711,6 @@ vec3 Barycentric(const Point& p, const Triangle& t)
 	return vec3(a, b, c);
 }
 
-float Raycast(const Triangle& triangle, const Ray& ray)
-{
-	// Create a plane and raycast to plane if no hit => no hit on triangle
-	// Afterwards check for barycentric coords beacause
-	// barycentric gives if a point is inside the "volume" of a triangle
-	Plane plane = FromTriangle(triangle);
-	float t = Raycast(plane, ray);
-	if (t < 0.0f) {
-		return t;
-	}
-
-	// Find point on plane that was hit
-	Point result = ray.origin + ray.direction * t;
-
-	// Find barycentric coords of the point on the triangle
-	vec3 barycentric = Barycentric(result, triangle);
-
-	// If point is within triangle ray hit it
-	if (barycentric.x >= 0.0f && barycentric.x <= 1.0f &&
-		barycentric.y >= 0.0f && barycentric.y <= 1.0f &&
-		barycentric.z >= 0.0f && barycentric.z <= 1.0f) {
-		return t;
-	}
-
-	return -1.0f;
-}
 
 // Linetests
 // -----------------------------------
@@ -692,7 +779,13 @@ bool Linetest(const Triangle& triangle, const Line& line)
 	ray.direction = AsNormal(line.end - line.start);
 
 	// Raycast
-	float t = Raycast(triangle, ray);
+	RaycastResult raycast;
+
+	if (!Raycast(triangle, ray, &raycast)) {
+		return false;
+	}
+
+	float t = raycast.t;
 
 	// Check if raycast is onto line
 	return t >= 0 && t * t <= LengthSq(line);
@@ -1429,7 +1522,9 @@ float MeshRay(const Mesh& mesh, const Ray& ray)
 	// if no accelerator struct => check all triangles
 	if (mesh.accelerator == 0) {
 		for (int i = 0; i < mesh.numTriangles; ++i) {
-			float result = Raycast(mesh.triangles[i], ray);
+			RaycastResult raycast;
+			Raycast(mesh.triangles[i], ray, &raycast);
+			float result = raycast.t;
 			if (result >= 0) {
 				return result;
 			}
@@ -1450,15 +1545,20 @@ float MeshRay(const Mesh& mesh, const Ray& ray)
 			if (iterator->numTriangles >= 0) {
 				for (int i = 0; i < iterator->numTriangles; ++i) {
 					// Do a raycast against the triangle
-					float r = Raycast(mesh.triangles[iterator->triangles[i]], ray);
-					if (r >= 0) { return r;}
+					RaycastResult raycast;
+					Raycast(mesh.triangles[iterator->triangles[i]], ray, &raycast);
+					float r = raycast.t;
+					if (r >= 0.0f) { return r;}
 				}
 			}
 			// if node is not a leaf perform a raycast agains bounds of each child
 			// if it hits a child add the node to Process list
 			if (iterator->children != 0) {
 				for (int i = 8 - 1; i >= 0; --i) {
-					if (Raycast(iterator->children[i].bounds, ray) >= 0) {
+					// Only push children whos bounds intersect the test geometry
+					RaycastResult raycast;
+					Raycast(iterator->children[i].bounds, ray, &raycast);
+					if (raycast.t >= 0) {
 						toProcess.push_front(&iterator->children[i]);
 					}
 				}
@@ -1921,3 +2021,4 @@ Ray GetPickRay(const vec2& viewportPoint,
 		}
 	*/
 }
+
