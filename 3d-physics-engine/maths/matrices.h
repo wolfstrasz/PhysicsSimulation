@@ -174,4 +174,8 @@ mat4 LookAt(const vec3& position, const vec3& target, const vec3& up);
 mat4 Projection(float fov, float aspect, float zNear, float zFar);
 mat4 Ortho(float left, float right, float bottom, float top, float zNear,
            float zFar);
+
+// Cut matrices
+mat4 FromMat3(const mat3& mat);
+mat4 FastInverse(const mat4& mat);
 #endif  // !_H_MATH_MATRICES

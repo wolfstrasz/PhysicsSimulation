@@ -315,8 +315,8 @@ typedef struct Frustum {
 			Plane bottom;
 			Plane left;
 			Plane right;
-			Plane near;
-			Plane far;
+			Plane _near;
+			Plane _far;
 		};
 		Plane planes[6];
 	};
