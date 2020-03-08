@@ -1,3 +1,6 @@
+#define TINYOBJLOADER_IMPLEMENTATION 
+#include "tiny_obj_loader.h"
+
 #include "ObjLoader.h"
 
 bool LoadMesh(const char* szFilePath, Mesh* mesh) {

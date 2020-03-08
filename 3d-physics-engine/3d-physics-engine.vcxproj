@@ -132,7 +132,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app\FixedFunctionPrimitives.cpp" />
     <ClCompile Include="app\GLWindow.cpp" />
+    <ClCompile Include="app\ObjLoader.cpp" />
     <ClCompile Include="app\Window.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
@@ -148,8 +150,11 @@
   <ItemGroup>
     <ClInclude Include="app\Camera.h" />
     <ClInclude Include="app\ControlledCamera.h" />
+    <ClInclude Include="app\FixedFunctionPrimitives.h" />
     <ClInclude Include="app\GLWindow.h" />
     <ClInclude Include="app\key_binds.h" />
+    <ClInclude Include="app\ObjLoader.h" />
+    <ClInclude Include="app\tiny_obj_loader.h" />
     <ClInclude Include="app\Window.h" />
     <ClInclude Include="include\glad.h" />
     <ClInclude Include="include\glfw3.h" />

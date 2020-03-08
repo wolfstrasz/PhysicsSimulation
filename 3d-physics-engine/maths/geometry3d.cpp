@@ -496,12 +496,12 @@ bool Raycast(const AABB& aabb, const Ray& ray, RaycastResult* storeResult)
 		storeResult->point = ray.origin + ray.direction * t;
 
 		vec3 normals[] = {
-			X,			// +x
-			X * -1.0f,	// -x
-			Y,			// +y
-			Y * -1.0f,	// -y
-			Z,			// +z
-			Z * -1.0f	// -z
+			vec3(-1, 0, 0),
+			vec3(1, 0, 0),
+			vec3(0, -1, 0),
+			vec3(0, 1, 0),
+			vec3(0, 0, -1),
+			vec3(0, 0, 1)
 		};
 
 		if (CMP(t, t1)) storeResult->normal = AsNormal(normals[0]);
@@ -548,19 +548,19 @@ bool Raycast(const OBB& obb, const Ray& ray, RaycastResult* storeResult)
 	// Calcualte all max and mins line in AABB
 	if (CMP(dirAxisProj.x, 0)) {
 		if (-rayAxisProj.x - obb.size.x > 0 || -rayAxisProj.x + obb.size.x < 0) {
-			return -1;
+			return false;
 		}
 		dirAxisProj.x = 0.00001f; // Avoid div by 0!
 	}
 	else if (CMP(dirAxisProj.y, 0)) {
 		if (-rayAxisProj.y - obb.size.y > 0 || -rayAxisProj.y + obb.size.y < 0) {
-			return -1;
+			return false;
 		}
 		dirAxisProj.y = 0.00001f; // Avoid div by 0!
 	}
 	else if (CMP(dirAxisProj.z, 0)) {
 		if (-rayAxisProj.z - obb.size.z > 0 || -rayAxisProj.z + obb.size.z < 0) {
-			return -1;
+			return false;
 		}
 		dirAxisProj.z = 0.00001f; // Avoid div by 0!
 	}
@@ -1808,14 +1808,14 @@ Point Intersection(Plane p1, Plane p2, Plane p3) {
 }
 
 void GetCorners(const Frustum& f, vec3* outCorners) {
-	outCorners[0] = Intersection(f.near, f.top, f.left);
-	outCorners[1] = Intersection(f.near, f.top, f.right);
-	outCorners[2] = Intersection(f.near, f.bottom, f.left);
-	outCorners[3] = Intersection(f.near, f.bottom, f.right);
-	outCorners[4] = Intersection(f.far, f.top, f.left);
-	outCorners[5] = Intersection(f.far, f.top, f.right);
-	outCorners[6] = Intersection(f.far, f.bottom, f.left);
-	outCorners[7] = Intersection(f.far, f.bottom, f.right);
+	outCorners[0] = Intersection(f._near, f.top, f.left);
+	outCorners[1] = Intersection(f._near, f.top, f.right);
+	outCorners[2] = Intersection(f._near, f.bottom, f.left);
+	outCorners[3] = Intersection(f._near, f.bottom, f.right);
+	outCorners[4] = Intersection(f._far, f.top, f.left);
+	outCorners[5] = Intersection(f._far, f.top, f.right);
+	outCorners[6] = Intersection(f._far, f.bottom, f.left);
+	outCorners[7] = Intersection(f._far, f.bottom, f.right);
 }
 
 bool Intersects(const Frustum& f, const Point& p)

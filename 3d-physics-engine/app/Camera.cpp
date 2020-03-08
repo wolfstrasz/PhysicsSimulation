@@ -159,18 +159,18 @@ Frustum Camera::GetFrustum()
 	result.top.normal = col4 - col2;
 
 	// Direct3D style for near: Range of space x E (-1,1), y E (-1,1), z E(0,1) 
-	result.near.normal = col3;
+	result._near.normal = col3;
 	// OpenGL style for near: Range of space x E (-1,1), y E (-1,1), z E(-1,1) 
 	// result.near.normal = col3 + col4; 
-	result.far.normal = col4 - col3;
+	result._far.normal = col4 - col3;
 
 	// calculate the distance from origin for each plane
 	result.left.distance = vp._44 + vp._41;
 	result.right.distance = vp._44 - vp._41;
 	result.bottom.distance = vp._44 + vp._42;
 	result.top.distance = vp._44 - vp._42;
-	result.near.distance = vp._43;
-	result.far.distance = vp._44 - vp._43;
+	result._near.distance = vp._43;
+	result._far.distance = vp._44 - vp._43;
 
 	// normalize planes and return frustum object
 	for (int i = 0; i < 6; ++i) {

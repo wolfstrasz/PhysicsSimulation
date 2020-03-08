@@ -28,7 +28,6 @@ void Render(const Triangle& triangle);
 void Render(const Triangle& triangle, bool oneSided);
 void Render(const Frustum& frustum);
 void RenderNormals(const Frustum& frustum);
-void Render(const CollisionManifold& manifold);
 
 void Render(const Mesh& mesh);
 void Render(const BVHNode& bvh);
