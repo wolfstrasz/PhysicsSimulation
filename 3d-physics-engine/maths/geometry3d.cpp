@@ -2022,3 +2022,309 @@ Ray GetPickRay(const vec2& viewportPoint,
 	*/
 }
 
+
+// COLISION MANIFOLDS 
+
+// Helper function to get items from OBB
+std::vector<Point> GetVertices(const OBB& obb)
+{
+	std::vector<vec3> v;
+	v.resize(8); // A box has 8 vertices
+
+	vec3 center = obb.position;
+	vec3 extents = obb.size;
+	const float* o = obb.orientation.asArray;
+	vec3 axes[] = {
+		vec3(o[0], o[1], o[2]),
+		vec3(o[3], o[4], o[5]),
+		vec3(o[6], o[7], o[8]),
+	};
+
+	v[0] = center + axes[0] * extents[0] + axes[1] * extents[1] + axes[2] * extents[2];
+	v[1] = center - axes[0] * extents[0] + axes[1] * extents[1] + axes[2] * extents[2];
+	v[2] = center + axes[0] * extents[0] - axes[1] * extents[1] + axes[2] * extents[2];
+	v[3] = center + axes[0] * extents[0] + axes[1] * extents[1] - axes[2] * extents[2];
+	v[4] = center - axes[0] * extents[0] - axes[1] * extents[1] - axes[2] * extents[2];
+	v[5] = center + axes[0] * extents[0] - axes[1] * extents[1] - axes[2] * extents[2];
+	v[6] = center - axes[0] * extents[0] + axes[1] * extents[1] - axes[2] * extents[2];
+	v[7] = center - axes[0] * extents[0] - axes[1] * extents[1] + axes[2] * extents[2];
+
+	return v;
+}
+std::vector<Line> GetEdges(const OBB& obb)
+{
+	std::vector<Line> result;
+	result.reserve(12);				// Box has 12 edges
+
+	// We can create vertices from edges
+	std::vector<Point> vertices = GetVertices(obb);
+
+	int index_of_edges[][2] = { // Indices of edges
+		{ 6, 1 },{ 6, 3 },{ 6, 4 },{ 2, 7 },{ 2, 5 },{ 2, 0 },
+		{ 0, 1 },{ 0, 3 },{ 7, 1 },{ 7, 4 },{ 4, 5 },{ 5, 3 }
+	};
+
+	for (int j = 0; j < 12; ++j) {
+		result.push_back(Line(vertices[index_of_edges[j][0]], vertices[index_of_edges[j][1]]));
+	}
+
+	return result;
+}
+std::vector<Plane> GetPlanes(const OBB& obb)
+{
+	vec3 center = obb.position;	// OBB Center
+	vec3 extents = obb.size;		// OBB Extents
+	const float* o = obb.orientation.asArray;
+	vec3 axes[] = {			// OBB Axis
+		vec3(o[0], o[1], o[2]),
+		vec3(o[3], o[4], o[5]),
+		vec3(o[6], o[7], o[8]),
+	};
+
+	std::vector<Plane> result;
+	result.resize(6);
+
+	result[0] = Plane(axes[0], Dot(axes[0], (center + axes[0] * extents.x)));
+	result[1] = Plane(axes[0] * -1.0f, -Dot(axes[0], (center - axes[0] * extents.x)));
+	result[2] = Plane(axes[1], Dot(axes[1], (center + axes[1] * extents.y)));
+	result[3] = Plane(axes[1] * -1.0f, -Dot(axes[1], (center - axes[1] * extents.y)));
+	result[4] = Plane(axes[2], Dot(axes[2], (center + axes[2] * extents.z)));
+	result[5] = Plane(axes[2] * -1.0f, -Dot(axes[2], (center - axes[2] * extents.z)));
+
+	return result;
+}
+
+bool ClipToPlane(const Plane& plane, const Line& line, Point* outPoint) {
+
+	vec3 line_dir = line.end - line.start;
+
+	// Check if plane intersects
+	float nA = Dot(plane.normal, line.start);
+	float nAB = Dot(plane.normal, line_dir);
+	if (CMP(nAB, 0.0f)) {
+		return false;	// they dont so cant clip
+	}
+
+	// time(position) along the line which it intersects
+	float t = (plane.distance - nA) / nAB;
+
+	// return point of intersection 
+	if (t >= 0.0f && t <= 1.0f) {
+		if (outPoint != nullptr) *outPoint = line.start + line_dir * t;
+
+		return true;
+	}
+
+	return false;
+}
+std::vector<Point> ClipEdgesToOBB(const std::vector<Line>& edges, const OBB& obb) {
+	std::vector<Point> result;
+	result.reserve(edges.size() * 3);
+	Point intersection;
+
+	std::vector<Plane> planes = GetPlanes(obb);
+
+	// Go through planes and edges to try to clip current edge ot current plane
+	for (int i = 0; i < planes.size(); ++i) {
+		for (int j = 0; j < edges.size(); ++j) {
+			if (ClipToPlane(planes[i], edges[j], &intersection)) {
+				// if intersection record the point
+				if (IsPointInOBB(intersection, obb)) {
+					result.push_back(intersection);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+float PenetrationDepth(const OBB& o1, const OBB& o2, const vec3& axis, bool* flipNormalFlag) {
+	// Get both intervals and check for intersections
+	Interval i1 = GetIntervalProjection(o1, AsNormal(axis));
+	Interval i2 = GetIntervalProjection(o2, AsNormal(axis));
+
+	if (!((i2.min <= i1.max) && (i1.min <= i2.max))) {
+		return 0.0f; // No overlap = no penetration
+	}
+
+	float len1 = i1.max - i1.min;
+	float len2 = i2.max - i2.min;
+	float min = fminf(i1.min, i2.min);
+	float max = fmaxf(i1.max, i2.max);
+	float length = max - min;
+
+	// if second OBB is in front of first one we need to flip the collision normal
+	if (flipNormalFlag != nullptr) *flipNormalFlag = (i2.min < i1.min);
+
+	return (len1 + len2) - length;
+}
+void ResetCollisionManifold(CollisionManifold* result) {
+	if (result != 0) {
+		result->colliding = false;
+		result->normal = vec3(0, 0, 1);
+		result->depth = FLT_MAX;
+		result->contacts.clear();
+	}
+}
+
+// Create collision manifolds
+CollisionManifold FindCollisionFeatures(const Sphere& A, const Sphere& B)
+{
+	CollisionManifold result;
+	ResetCollisionManifold(&result);
+
+	float radius_combined = A.radius + B.radius;
+	vec3 distance = B.position - A.position;
+
+	// If the squared distance is less than the squared sum radius, the spheres do not intersect
+	if (MagnitudeSq(distance) - radius_combined * radius_combined > 0 || MagnitudeSq(distance) == 0.0f) {
+		return result;
+	}
+
+	// Get direction vector by normalizing
+	vec3 direction = distance;
+	Normalize(direction);
+
+	// fill data
+	result.colliding = true;
+	result.normal = direction;
+	result.depth = fabsf(Magnitude(direction) - radius_combined) * 0.5f;
+	
+	float dist_to_point = A.radius - result.depth; // Distance to intersection point
+	Point contact = A.position + direction * dist_to_point;
+	result.contacts.push_back(contact);
+	return result;
+}
+CollisionManifold FindCollisionFeatures(const OBB& A, const Sphere& B) {
+	CollisionManifold result;
+	ResetCollisionManifold(&result);
+	// Get closest point of sphere onto OBB
+	Point closestPoint = GetClosestPoint(A, B.position);
+
+	// Check for intersection
+	float distanceSq = MagnitudeSq(
+		closestPoint - B.position);
+	if (distanceSq > B.radius* B.radius) {
+		return result;
+	}
+
+	// If the closest point = center of sphere, we can't easily build a collision normal.
+	// try to find a new closest point
+
+	vec3 normal;
+	if (CMP(distanceSq, 0.0f)) {
+		float mSq = MagnitudeSq(closestPoint - A.position);
+		if (CMP(mSq, 0.0f)) return result;
+		// Closest point is at the center of the sphere
+		normal = AsNormal(closestPoint - A.position);
+	}
+	else {
+		normal = AsNormal(B.position - closestPoint);
+	}
+
+	// fill data of manifold
+	Point outsidePoint = B.position - normal * B.radius;
+	float distance = Magnitude(closestPoint - outsidePoint);
+	result.colliding = true;
+	result.contacts.push_back(closestPoint + (outsidePoint - closestPoint) * 0.5f);
+	result.normal = normal;
+	result.depth = distance * 0.5f;
+	return result;
+}
+CollisionManifold FindCollisionFeatures(const OBB& A, const OBB& B)
+{
+	CollisionManifold result;
+	ResetCollisionManifold(&result);
+
+	// Check if there is a posibility to have a collision
+	// by creating spheres and checking if they collide
+	Sphere s1(A.position, Magnitude(A.size));
+	Sphere s2(B.position, Magnitude(B.size));
+
+	if (!SphereSphere(s1, s2)) {
+		return result;
+	}
+
+	// Store orientations and create axis to test for collision
+	const float* o1 = A.orientation.asArray;
+	const float* o2 = B.orientation.asArray;
+
+	vec3 test_axes[15] = {
+		// first box axes
+		vec3(o1[0], o1[1], o1[2]),
+		vec3(o1[3], o1[4], o1[5]),
+		vec3(o1[6], o1[7], o1[8]),
+		// second box axes
+		vec3(o2[0], o2[1], o2[2]),
+		vec3(o2[3], o2[4], o2[5]),
+		vec3(o2[6], o2[7], o2[8])
+	};
+	for (int i = 0; i < 3; ++i) { // Fill out rest of axis (cross products of all possible pairs)
+		test_axes[6 + i * 3 + 0] = Cross(test_axes[i], test_axes[0]);
+		test_axes[6 + i * 3 + 1] = Cross(test_axes[i], test_axes[1]);
+		test_axes[6 + i * 3 + 2] = Cross(test_axes[i], test_axes[2]);
+	}
+
+	// Vars to retrieve data
+	vec3* hitNormal = nullptr;
+	bool shouldFlip;
+
+	// Test axes
+	for (int i = 0; i < 15; ++i) {
+		if (test_axes[i].x < 0.000001f) test_axes[i].x = 0.0f;
+		if (test_axes[i].y < 0.000001f) test_axes[i].y = 0.0f;
+		if (test_axes[i].z < 0.000001f) test_axes[i].z = 0.0f;
+		if (MagnitudeSq(test_axes[i]) < 0.001f) {
+			continue;
+		}
+
+		// Get penetration depth of the OBBs on the separating axis:
+		float depth = PenetrationDepth(A, B, test_axes[i], &shouldFlip);
+		if (depth <= 0.0f) return result;	// test for intersection 
+
+		if (depth < result.depth) {
+			// flip if needed
+			if (shouldFlip) test_axes[i] = test_axes[i] * (-1.0f);
+			result.depth = depth;
+			hitNormal = &test_axes[i];
+		}
+	}
+
+	// If no collision on any axes
+	if (hitNormal == nullptr) return result;
+
+	// else clip boxes and obtain intersection points
+	vec3 axis = AsNormal(*hitNormal); // make sure collision normal is a normal
+
+	std::vector<Point> c1 = ClipEdgesToOBB(GetEdges(B), A);
+	std::vector<Point> c2 = ClipEdgesToOBB(GetEdges(A), B);
+	result.contacts.reserve(c1.size() + c2.size());
+	result.contacts.insert(result.contacts.end(), c1.begin(), c1.end());
+	result.contacts.insert(result.contacts.end(), c2.begin(), c2.end());
+
+	// project the result of the clipped points onto a shared plane
+	Interval i = GetIntervalProjection(A, axis);
+	float distance = (i.max - i.min) * 0.5f - result.depth * 0.5f;
+	vec3 pointOnPlane = A.position + axis * distance;
+
+	for (int i = result.contacts.size() - 1; i >= 0; --i) {
+		vec3 contact = result.contacts[i];
+		// Store result of projection
+		result.contacts[i] = contact + (axis * Dot(axis, pointOnPlane - contact));
+
+		// Remove not needed contact points (i.e. duplicates)
+		for (int j = result.contacts.size() - 1; j > i; --j) {
+			if (MagnitudeSq(result.contacts[j] - result.contacts[i]) < 0.0001f) {
+				result.contacts.erase(result.contacts.begin() + j);
+				break;
+			}
+		}
+	}
+
+	// Return the manifold
+	result.colliding = true;
+	result.normal = axis;
+	return result;
+}
+
+

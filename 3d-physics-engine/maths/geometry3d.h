@@ -3,6 +3,7 @@
 
 #include "matrices.h"
 #include "vectors.h"
+#include <vector>
 
 typedef vec3 Point;
 
@@ -366,5 +367,32 @@ Ray GetPickRay(const vec2& viewportPoint,
 	const mat4& projection);
 
 
+// Collision Manifolds
+typedef struct CollisionManifold {
+	bool colliding;				// true if collision occured
+	vec3 normal;				// the collision normal
+	float depth;				// the penetration distance (half of total length)
+	std::vector<vec3> contacts; // points of contact
+
+	/* additionally can hold:
+	- pointers to colliding objects
+	- relative velocity of collison
+	- type of collision (no/colliding/ penetrating)
+	*/
+};
+
+void ResetCollisionManifold(CollisionManifold* result);
+CollisionManifold FindCollisionFeatures(const Sphere& A, const Sphere& B);
+CollisionManifold FindCollisionFeatures(const OBB& A, const Sphere& B);
+CollisionManifold FindCollisionFeatures(const OBB& A, const OBB& B);
+
+// Helper function for FCF of OBB and OBB
+std::vector<Point> GetVertices(const OBB& obb);
+std::vector<Line> GetEdges(const OBB& obb);
+std::vector<Plane> GetPlanes(const OBB& obb);
+bool ClipToPlane(const Plane& plane, const Line& line, Point* outPoint);
+std::vector<Point> ClipEdgesToOBB(const std::vector<Line>& edges, const OBB& obb);
+float PenetrationDepth(const OBB& o1, const OBB& o2, const vec3& axis, bool* flipNormalFlag);
+CollisionManifold FindCollisionFeatures(const OBB& A, const OBB& B);
 
 #endif  // !_H_MYMATHS_GEOMETRY_3D
