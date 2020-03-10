@@ -31,15 +31,14 @@ void Particle::Render() {
 }
 
 void Particle::ApplyForces() {
-	m_forces = m_gravity;
+	m_forces = m_gravity * m_mass;
 }
 
-// Euler Integration
 void Particle::Update(float deltaTime) {
 
 #ifdef EULER_INTEGRATION
 	m_oldPosition = m_position;
-	vec3 acceleration = m_forces * (1.0f / m_mass);
+	vec3 acceleration = m_forces * InvMass();
 	m_velocity = m_velocity * m_friction + acceleration * deltaTime;
 	m_position = m_position + m_velocity * deltaTime;
 #else 
@@ -116,4 +115,35 @@ void Particle::SolveConstraints(const std::vector<OBB>& constraints) {
 	}
 #endif
 }
+
+void Particle::AddImpulse(const vec3& impulse) {
+	m_velocity = m_velocity + impulse;
+}
+
+float Particle::InvMass() {
+	if (m_mass == 0.0f) {
+		return 0.0f;
+	}
+	return 1.0f / m_mass;
+}
+
+void Particle::SetMass(float m) {
+	if (m < 0) {
+		m = 0;
+	}
+	m_mass = m;
+}
+
+void Particle::SetFriction(float f) {
+	if (f < 0) {
+		f = 0;
+	}
+	m_friction = f;
+}
+
+vec3 Particle::GetVelocity() {
+	return m_velocity;
+}
+
+
 
