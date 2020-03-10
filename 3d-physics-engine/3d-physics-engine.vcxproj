@@ -147,6 +147,7 @@
     <ClCompile Include="maths\vectors.cpp" />
     <ClCompile Include="app\QuadTree.cpp" />
     <ClCompile Include="physics\Cloth.cpp" />
+    <ClCompile Include="physics\DistanceJoint.cpp" />
     <ClCompile Include="physics\Particle.cpp" />
     <ClCompile Include="physics\PhysicsSystem.cpp" />
     <ClCompile Include="physics\RigidBody.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="app\QuadTree.h" />
     <ClInclude Include="dfns.h" />
     <ClInclude Include="physics\Cloth.h" />
+    <ClInclude Include="physics\DistanceJoint.h" />
     <ClInclude Include="physics\Particle.h" />
     <ClInclude Include="physics\PhysicsSystem.h" />
     <ClInclude Include="physics\RigidBody.h" />
