@@ -20,8 +20,9 @@ Particle::Particle() :
 	m_friction(0.95f),
 	m_gravity(vec3(0.0f, -9.82f, 0.0f)),
 	m_mass (1.0f),
-	m_bounce (0.7f) {
-
+	m_bounce (0.7f)
+{
+	type = RIGIDBODY_TYPE::PARTICLE;
 }
 
 void Particle::Render() {
