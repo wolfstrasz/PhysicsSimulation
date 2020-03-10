@@ -146,6 +146,10 @@
     <ClCompile Include="app\Scene.cpp" />
     <ClCompile Include="maths\vectors.cpp" />
     <ClCompile Include="app\QuadTree.cpp" />
+    <ClCompile Include="physics\Particle.cpp" />
+    <ClCompile Include="physics\PhysicsSystem.cpp" />
+    <ClCompile Include="physics\RigidBody.cpp" />
+    <ClCompile Include="physics\RigidbodyWithVolume.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app\Camera.h" />
@@ -166,6 +170,11 @@
     <ClInclude Include="app\Scene.h" />
     <ClInclude Include="maths\vectors.h" />
     <ClInclude Include="app\QuadTree.h" />
+    <ClInclude Include="dfns.h" />
+    <ClInclude Include="physics\Particle.h" />
+    <ClInclude Include="physics\PhysicsSystem.h" />
+    <ClInclude Include="physics\RigidBody.h" />
+    <ClInclude Include="physics\RigidbodyWithVolume.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />

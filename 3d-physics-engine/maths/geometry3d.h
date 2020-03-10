@@ -379,7 +379,7 @@ typedef struct CollisionManifold {
 	- relative velocity of collison
 	- type of collision (no/colliding/ penetrating)
 	*/
-};
+} ;
 
 void ResetCollisionManifold(CollisionManifold* result);
 CollisionManifold FindCollisionFeatures(const Sphere& A, const Sphere& B);

@@ -16,6 +16,11 @@ public:
 	float cor; // Coefficient of restitution
 	float friction;
 
+	// support for angular velocity
+	vec3 orientation;
+	vec3 angVel;
+	vec3 torques;
+
 	// volume (should come from hierarchy of a Shape and just keep shape)
 	OBB box;
 	Sphere sphere;
@@ -39,5 +44,17 @@ public:
 	// Unique functions
 	void SynchCollisionVolumes();
 	float InvMass();
+
+	// Support for Linear Velocity
 	void AddLinearImpulse(const vec3& impulse);
+
+	// Support for Angular Velocity
+	mat4 InvTensor(); // The Moment of Inertia can be expressed as a 3x3 matrix called an Inertia Tensor. Can check online for all shapes.
+	virtual void AddRotationalImpulse(const vec3& point, const vec3& impulse);
+
 };
+
+
+// Collision resolutions
+CollisionManifold FindCollisionFeatures(RigidbodyWithVolume& ra, RigidbodyWithVolume& rb);
+void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const CollisionManifold& M, int c);

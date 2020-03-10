@@ -30,11 +30,6 @@ void Particle::Render() {
 	::Render(visual);
 }
 
-void Particle::SolveConstraints(
-	const std::vector<OBB>& constraints) {
-	// Will be covered in next section
-}
-
 void Particle::ApplyForces() {
 	m_forces = m_gravity;
 }
