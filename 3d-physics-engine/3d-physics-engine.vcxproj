@@ -132,6 +132,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app\BoxDemo.cpp" />
+    <ClCompile Include="app\Demo.cpp" />
     <ClCompile Include="app\FixedFunctionPrimitives.cpp" />
     <ClCompile Include="app\GLWindow.cpp" />
     <ClCompile Include="app\ObjLoader.cpp" />
@@ -155,8 +157,10 @@
     <ClCompile Include="physics\Spring.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app\BoxDemo.h" />
     <ClInclude Include="app\Camera.h" />
     <ClInclude Include="app\ControlledCamera.h" />
+    <ClInclude Include="app\Demo.h" />
     <ClInclude Include="app\FixedFunctionPrimitives.h" />
     <ClInclude Include="app\GLWindow.h" />
     <ClInclude Include="app\key_binds.h" />

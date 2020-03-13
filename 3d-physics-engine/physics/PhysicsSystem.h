@@ -22,7 +22,11 @@ public:
 	int ImpulseIteration; // More iterations = more accurate physics (6-8 should be fine)
 	bool DoLinearProjection; // A bit more heavy if used but not sinking
 
+
+	bool RenderRandomColors;
 public:
+	PhysicsSystem();
+
 	void Update(float deltaTime);
 	void Render();
 
@@ -36,7 +40,6 @@ public:
 	void ClearSprings();
 	void ClearCloths();
 
-	PhysicsSystem();
 };
 
 
