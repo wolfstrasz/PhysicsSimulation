@@ -1,6 +1,7 @@
 #pragma once
 #include "../maths/matrices.h"
 #include "../maths/geometry3d.h"
+#include "../maths/compare.h"
 
 class Camera {
 protected:

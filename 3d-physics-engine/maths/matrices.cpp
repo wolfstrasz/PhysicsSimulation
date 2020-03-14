@@ -253,7 +253,7 @@ mat4 Rotation(float pitch, float yaw, float roll) {
   return ZRotation(roll) * XRotation(pitch) * YRotation(yaw);
 }
 mat3 Rotation3x3(float pitch, float yaw, float roll) {
-  return ZRotation3x3(yaw) * XRotation3x3(pitch) * YRotation3x3(yaw);
+  return ZRotation3x3(roll) * XRotation3x3(pitch) * YRotation3x3(yaw);
 }
 
 mat4 ZRotation(float angle) {
@@ -308,7 +308,6 @@ mat4 AxisAngle(const vec3& axis, float angle) {
               t * x * z + s * y, t * y * z - s * x, t * (z * z) + c, 0.0f, 0.0f,
               0.0f, 0.0f, 1.0f);
 }
-
 mat3 AxisAngle3x3(const vec3& axis, float angle) {
   angle = DEG2RAD(angle);
   float c = cosf(angle);

@@ -170,7 +170,7 @@ void Cloth::SolveConstraints(
 }
 
 // Render
-void Cloth::Render() {
+void Cloth::Render(bool debug) {
 	// Loop to find particles to act as vertices
 	for (int x = 0; x < clothSize - 1; ++x) {
 		for (int z = 0; z < clothSize - 1; ++z) {

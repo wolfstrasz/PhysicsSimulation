@@ -1,8 +1,13 @@
 #ifndef _H_MYMATHS_VECTORS
 #define _H_MYMATHS_VECTORS
 
-#define RAD2DEG(x) ((x)*57.295754f)
-#define DEG2RAD(x) ((x)*0.0174533f)
+#ifndef RAD2DEG
+float RAD2DEG(float radians);
+#endif 
+#ifndef DEG2RAD
+float DEG2RAD(float degrees);
+#endif
+float CorrectDegrees(float degrees);
 
 // DEFINE VECTOR STRUCTURES
 typedef struct vec2 {
@@ -61,6 +66,7 @@ float Magnitude(const vec3& v);
 float MagnitudeSq(const vec2& v);
 float MagnitudeSq(const vec3& v);
 
+float Distance(const vec2& p1, const vec2& p2);
 float Distance(const vec3& p1, const vec3& p2);
 
 void Normalize(vec2& v);

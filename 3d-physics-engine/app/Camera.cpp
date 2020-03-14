@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <cfloat>
-#define CMP(x, y) (fabsf((x)-(y)) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y))))
+
 
 Camera::Camera() {
 	m_Fov = 60.0f;

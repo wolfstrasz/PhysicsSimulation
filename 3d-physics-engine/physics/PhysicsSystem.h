@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RigidbodyWithVolume.h"
+#include "Rigidbody.h"
 #include "Spring.h"
 #include "Cloth.h"
 

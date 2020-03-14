@@ -1,6 +1,6 @@
 #include "PhysicsSystem.h"
+#include "RigidbodyWithVolume.h"
 
-#include "PhysicsSystem.h"
 #include "../app/FixedFunctionPrimitives.h"
 #include "glad/glad.h"
 
@@ -69,7 +69,7 @@ void PhysicsSystem::Render() {
 
 	std::vector<const float*> ambient;
 	std::vector<const float*> diffuse;
-
+	//std::cout << "RENDERING\n";
 	// RENDER BODIES
 	// ---------------------------------------------------------------------------
 	if (RenderRandomColors) {
@@ -137,7 +137,7 @@ void PhysicsSystem::Render() {
 
 	// Render Cloths
 	for (int i = 0, size = cloths.size(); i < size; ++i) {
-		cloths[i]->Render();
+		cloths[i]->Render(false);
 	}
 }
 
@@ -146,13 +146,13 @@ void PhysicsSystem::Update(float deltaTime) {
 	colliders1.clear();
 	colliders2.clear();
 	results.clear();
-	std::cout << "Physics Update" << std::endl;
+	//std::cout << "Physics Update" << std::endl;
 
 	// Collision detection
 	// ----------------------------------------------------------------------------------
 	CollisionManifold result;
 	for (int i = 0, size = bodies.size(); i < size; ++i) {
-		std::cout << "CM for body: " << i << std::endl;
+	//	std::cout << "CM for body: " << i << std::endl;
 		for (int j = i; j < size; ++j) {
 			if (i == j) continue;
 			ResetCollisionManifold(&result);
@@ -168,7 +168,7 @@ void PhysicsSystem::Update(float deltaTime) {
 				colliders1.push_back(bodies[i]);
 				colliders2.push_back(bodies[j]);
 				results.push_back(result);
-				std::cout << "COLLISION!\n";
+				//std::cout << "COLLISION!\n";
 			}
 		}
 	}

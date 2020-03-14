@@ -29,7 +29,7 @@ public:
 
 
 	// Render
-	void Render();
+	void Render(bool debug);
 
 
 	// Helper function

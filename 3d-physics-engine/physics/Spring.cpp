@@ -1,6 +1,7 @@
 #include "Spring.h"
 
 
+
 void Spring::SetParticles(Particle* _p1, Particle* _p2) {
 	p1 = _p1;
 	p2 = _p2;
@@ -25,6 +26,13 @@ void Spring::ApplyForce(float dt) {
 	// Get relative position and velocity
 	vec3 relPos = p2->GetPosition() - p1->GetPosition();
 	vec3 relVel = p2->GetVelocity() - p1->GetVelocity();
+
+
+	// Prevent underflow
+	for (int i = 0; i < 3; ++i) {
+		relPos[i] = (fabsf(relPos[i]) < 0.0000001f) ? 0.0f : relPos[i];
+		relVel[i] = (fabsf(relVel[i]) < 0.0000001f) ? 0.0f : relVel[i];
+	}
 
 	// Hooke's Law
 	float x = Magnitude(relPos) - restingLength;

@@ -51,7 +51,7 @@ void ControlledCamera::Update(float dt) {
 	vec3 position = direction + target;
 
 	// TODO: apply fast method as LookAt is orthogonal (transform first to orthonormal)
-	m_World = Inverse(LookAt(position, target, vec3(0, 1, 0)));
+	m_World = FastInverse(LookAt(position, target, vec3(0, 1, 0)));
 }
 
 float ControlledCamera::ClampAngle(float angle, float min, float max) {

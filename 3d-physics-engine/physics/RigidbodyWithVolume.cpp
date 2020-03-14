@@ -1,7 +1,6 @@
 #include "RigidbodyWithVolume.h"
 #include "../app/FixedFunctionPrimitives.h"
-#define CMP(x, y) \
-  (fabsf((x) - (y)) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y))))
+#include "../maths/compare.h"
 
 #define USE_ANGULAR_VELOCITY
 void RigidbodyWithVolume::ApplyForces() { 
@@ -23,13 +22,15 @@ void RigidbodyWithVolume::Update(float dt) {
 	vec3 acceleration = forces * InvMass();
 	velocity = velocity + acceleration * dt;
 	velocity = velocity * damping;
-
+	StopJitter(velocity);
 
 	// Ang Vel for BOX
 	if (type == RIGIDBODY_TYPE::BOX) {
 		vec3 angAccel = MultiplyVector(torques, InvTensor());
 		angVel = angVel + angAccel * dt;
 		angVel = angVel * damping;
+		StopJitter(velocity);
+
 	} // If spheres have textures should ADD orientation for spheres as well !
 	// and add rotation here!
 
@@ -54,6 +55,14 @@ void RigidbodyWithVolume::AddLinearImpulse(const vec3& impulse) {
 // Support for Angular Velocity
 mat4 RigidbodyWithVolume::InvTensor()
 {
+	if (mass == 0) {
+		return mat4(
+			0, 0, 0, 0,
+			0, 0, 0, 0,
+			0, 0, 0, 0,
+			0, 0, 0, 0
+		);
+	}
 	// Values of diagonal of matrix (we have nonly sphere and box)
 	float ix = 0.0f;
 	float iy = 0.0f;
@@ -183,23 +192,22 @@ void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const Collisio
 	float e = fminf(A.cor, B.cor);
 	float numerator = (-(1.0f + e) * Dot(relativeVel, relativeNorm));
 
+	float d1 = invMassSum;
 #ifdef USE_ANGULAR_VELOCITY
 
 	// Calculate impulse formula
-	float d1 = invMassSum;
 	vec3 d2 = Cross(MultiplyVector(Cross(r1, relativeNorm), i1), r1);
 	vec3 d3 = Cross(MultiplyVector(Cross(r2, relativeNorm), i2), r2);
 	float denominator = d1 + Dot(relativeNorm, d2 + d3);
+#else
+	float denominator = d1;
+#endif
 
 	float j = (denominator == 0.0f) ? 0.0f : numerator / denominator;
-#else
-	float j = numerator / invMassSum;
-#endif
 
 	if (M.contacts.size() > 0.0f && j != 0.0f) {
 		j /= (float)M.contacts.size();
 	}
-
 
 	// Obtain impulses and apply separating velocities
 	vec3 impulse = relativeNorm * j;
@@ -211,6 +219,7 @@ void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const Collisio
 	B.angVel = B.angVel + MultiplyVector(Cross(r2, impulse), i2);
 #endif
 
+	// -------------------------------------------------------------------------------------
 	// Calculate friction normal
 	vec3 fNormal = relativeVel - (relativeNorm *Dot(relativeVel, relativeNorm));
 	if (CMP(MagnitudeSq(fNormal), 0.0f)) {
@@ -220,19 +229,17 @@ void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const Collisio
 
 	// Calculate friction strength
 	numerator = -Dot(relativeVel, fNormal);
+	d1 = invMassSum;
 
 #ifdef USE_ANGULAR_VELOCITY
-	d1 = invMassSum;
 	d2 = Cross(MultiplyVector(Cross(r1, fNormal), i1), r1);
 	d3 = Cross(MultiplyVector(Cross(r2, fNormal), i2), r2);
 	denominator = d1 + Dot(fNormal, d2 + d3);
-	if (denominator == 0.0f) {
-		return;
-	}
-	float fMagnitude = numerator / denominator;
 #else
-	float fMagnitude = numerator / invMassSum;
+	denominator = d1;
 #endif
+
+	float fMagnitude = numerator / denominator;
 	if (M.contacts.size() > 0.0f && fMagnitude != 0.0f) {
 		fMagnitude /= (float)M.contacts.size();
 	}
@@ -257,3 +264,15 @@ void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const Collisio
 
 }
 
+void StopJitter(vec3& velocity) {
+	// Stop jitter
+	if (fabsf(velocity.x) < 0.001f) {
+		velocity.x = 0.0f;
+	}
+	if (fabsf(velocity.y) < 0.001f) {
+		velocity.y = 0.0f;
+	}
+	if (fabsf(velocity.z) < 0.001f) {
+		velocity.z = 0.0f;
+	}
+}

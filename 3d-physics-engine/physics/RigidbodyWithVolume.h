@@ -5,8 +5,6 @@
 
 
 class RigidbodyWithVolume : public Rigidbody {
-	// New class body
-
 
 public:
 	vec3 position;
@@ -58,3 +56,4 @@ public:
 // Collision resolutions
 CollisionManifold FindCollisionFeatures(RigidbodyWithVolume& ra, RigidbodyWithVolume& rb);
 void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const CollisionManifold& M, int c);
+void StopJitter(vec3& velocity);

@@ -13,8 +13,11 @@ protected:
 
 
 public:
-	inline Spring(float stiffness, float dampening, float restLen)
-		: stiffnessCoef(stiffness), dampStr(dampening), restingLength(restLen) { }
+	inline Spring(float stiffness, float dampening, float restLen) :
+		stiffnessCoef(stiffness),
+		dampStr(dampening),
+		restingLength(restLen)
+	{ }
 
 	Particle* GetP1();
 	Particle* GetP2();

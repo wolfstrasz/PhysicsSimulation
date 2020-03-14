@@ -17,7 +17,7 @@ void Demo::Resize(int width, int height) {
 void Demo::Update(float dt) {
 
 	// Update the camera position
-	//camera.Update(dt);
+	camera.Update(dt);
 }
 
 void Demo::Render() {

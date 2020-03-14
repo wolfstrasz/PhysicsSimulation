@@ -3,6 +3,31 @@
 #include <cfloat>
 #include <cmath>
 
+float CorrectDegrees(float degrees) {
+	while (degrees > 360.0f) {
+		degrees -= 360.0f;
+	}
+	while (degrees < -360.0f) {
+		degrees += 360.0f;
+	}
+	return degrees;
+}
+
+#ifndef RAD2DEG
+float RAD2DEG(float radians) {
+	float degrees = radians * 57.295754f;
+	degrees = CorrectDegrees(degrees);
+	return degrees;
+}
+#endif
+#ifndef DEG2RAD
+float DEG2RAD(float degrees) {
+	degrees = CorrectDegrees(degrees);
+	float radians = degrees * 0.0174533f;
+	return radians;
+}
+#endif
+
 #define CMP(x, y) \
   (fabsf((x) - (y)) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y))))
 
@@ -42,10 +67,17 @@ float Magnitude(const vec3& v) { return sqrtf(Dot(v, v)); }
 float MagnitudeSq(const vec2& v) { return Dot(v, v); }
 float MagnitudeSq(const vec3& v) { return Dot(v, v); }
 
+
+
+float Distance(const vec2& p1, const vec2& p2) {
+	vec2 t = p1 - p2;
+	return Magnitude(t);
+}
 float Distance(const vec3& p1, const vec3& p2) {
   vec3 t = p1 - p2;
   return Magnitude(t);
 }
+
 
 void Normalize(vec2& v) { v = v * (1.0f / Magnitude(v)); }
 void Normalize(vec3& v) { v = v * (1.0f / Magnitude(v)); }

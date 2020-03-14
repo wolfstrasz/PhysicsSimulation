@@ -19,10 +19,12 @@ float Particle::GetBounce() {
 Particle::Particle() :
 	m_friction(0.95f),
 	m_gravity(vec3(0.0f, -9.82f, 0.0f)),
-	m_mass (1.0f),
 	m_bounce (0.7f)
 {
 	type = RIGIDBODY_TYPE::PARTICLE;
+#ifdef EULER_INTEGRATION
+	m_mass = 1.0f;
+#endif
 }
 
 void Particle::Render() {
@@ -65,20 +67,29 @@ void Particle::SolveConstraints(const std::vector<OBB>& constraints) {
 		
 		// Check for collision
 		if (Linetest(constraints[i], traveled)) {
+
+#ifndef EULER_INTEGRATION
+			vec3 m_velocity = m_position - m_oldPosition;
+#endif
 			// If collided raycast to find point of intersection
 			vec3 direction = AsNormal(m_velocity);
 			Ray ray(m_oldPosition, direction);
 			RaycastResult result;
+
 			if (Raycast(constraints[i], ray, &result)) {
 				// Move particle a bit above collision to allow rolling down
-				m_position = result.point + result.normal * 0.002f;
+				m_position = result.point + result.normal * 0.003f;
 
 				// Deconstruct velocity vector into components relative to collision normal
 				vec3 vn = result.normal * Dot(result.normal, m_velocity); // parallel
 				vec3 vt = m_velocity - vn; // perpendicular
 
+#ifdef EULER_INTEGRATION
 				m_oldPosition = m_position;
 				m_velocity = vt - vn * m_bounce;
+#else
+				oldPosition = position - (vt - vn * bounce);
+#endif
 				break;
 			}
 		}
@@ -117,7 +128,13 @@ void Particle::SolveConstraints(const std::vector<OBB>& constraints) {
 }
 
 void Particle::AddImpulse(const vec3& impulse) {
+#ifdef EULER_INTEGRATION
 	m_velocity = m_velocity + impulse;
+#else
+	vec3 velocity = m_position - m_oldPosition;
+	velocity = velocity + impulse;
+	m_oldPosition = m_position - velocity;
+#endif
 }
 
 float Particle::InvMass() {
@@ -142,7 +159,11 @@ void Particle::SetFriction(float f) {
 }
 
 vec3 Particle::GetVelocity() {
+#ifdef EULER_INTEGRATION
 	return m_velocity;
+#else 
+	return position - m_oldPosition
+#endif
 }
 
 

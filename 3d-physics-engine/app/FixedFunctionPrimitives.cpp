@@ -2,16 +2,13 @@
 #define WIN32_EXTRA_LEAN
 #include <windows.h>
 #include <windowsx.h>
-#include "glad/glad.h"
+#include "../include/glad/glad.h"
 #include <cmath>
+#include "../maths/compare.h"
 #include "FixedFunctionPrimitives.h"
-#include "../maths/vectors.h"
-
-#define CMP(x, y) \
-  (fabsf((x) - (y)) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y))))
 
 #ifndef  M_PI
-	#define M_PI 3.14159265358979323846f
+#define M_PI 3.14159265358979323846f
 #endif
 
 void Render(const Mesh& mesh) {
@@ -135,7 +132,7 @@ void Render(const Frustum& frustum) {
 	vec3 FTR = Intersection(frustum._far, frustum.top, frustum.right);
 	vec3 FBL = Intersection(frustum._far, frustum.bottom, frustum.left);
 	vec3 FBR = Intersection(frustum._far, frustum.bottom, frustum.right);
-	
+
 	glBegin(GL_LINES);
 
 	// Near
@@ -197,15 +194,15 @@ void Render(const Plane& plane) {
 	vec3 ty = AsNormal(up);
 
 	glBegin(GL_QUADS);
-		glVertex3f((tx.x + ty.x) + n.x * d, (tx.y + ty.y) + n.y * d, (tx.z + ty.z) + n.z * d);
-		glVertex3f((tx.x - ty.x) + n.x * d, (tx.y - ty.y) + n.y * d, (tx.z - ty.z) + n.z * d);
-		glVertex3f((-tx.x - ty.x) + n.x * d, (-tx.y - ty.y) + n.y * d, (-tx.z - ty.z) + n.z * d);
-		glVertex3f((-tx.x + ty.x) + n.x * d, (-tx.y + ty.y) + n.y * d, (-tx.z + ty.z) + n.z * d);
+	glVertex3f((tx.x + ty.x) + n.x * d, (tx.y + ty.y) + n.y * d, (tx.z + ty.z) + n.z * d);
+	glVertex3f((tx.x - ty.x) + n.x * d, (tx.y - ty.y) + n.y * d, (tx.z - ty.z) + n.z * d);
+	glVertex3f((-tx.x - ty.x) + n.x * d, (-tx.y - ty.y) + n.y * d, (-tx.z - ty.z) + n.z * d);
+	glVertex3f((-tx.x + ty.x) + n.x * d, (-tx.y + ty.y) + n.y * d, (-tx.z + ty.z) + n.z * d);
 
-		glVertex3f((tx.x + ty.x) + n.x * d, (tx.y + ty.y) + n.y * d, (tx.z + ty.z) + n.z * d);
-		glVertex3f((-tx.x + ty.x) + n.x * d, (-tx.y + ty.y) + n.y * d, (-tx.z + ty.z) + n.z * d);
-		glVertex3f((-tx.x - ty.x) + n.x * d, (-tx.y - ty.y) + n.y * d, (-tx.z - ty.z) + n.z * d);
-		glVertex3f((tx.x - ty.x) + n.x * d, (tx.y - ty.y) + n.y * d, (tx.z - ty.z) + n.z * d);
+	glVertex3f((tx.x + ty.x) + n.x * d, (tx.y + ty.y) + n.y * d, (tx.z + ty.z) + n.z * d);
+	glVertex3f((-tx.x + ty.x) + n.x * d, (-tx.y + ty.y) + n.y * d, (-tx.z + ty.z) + n.z * d);
+	glVertex3f((-tx.x - ty.x) + n.x * d, (-tx.y - ty.y) + n.y * d, (-tx.z - ty.z) + n.z * d);
+	glVertex3f((tx.x - ty.x) + n.x * d, (tx.y - ty.y) + n.y * d, (tx.z - ty.z) + n.z * d);
 	glEnd();
 
 	float currentColor[4];
@@ -327,7 +324,7 @@ void Render(const OBB& obb) {
 	// SRT: Scale First, Rotate Second, Translate Last
 	// orientation = roll * pitch * yaw;
 	mat4 transform = scale * rotation * translation;
-	
+
 	// Using GL pipe stuff:
 	// glTranslate(obb.position.x, obb.position.y, obb.position.z);
 	// Orientation = yaw * pitch * roll
@@ -361,7 +358,7 @@ void Render(const Rectangle2D& rect) {
 	vec2 min = GetMin(rect);
 	vec2 max = GetMax(rect);
 
-	glBegin(GL_LINES); 
+	glBegin(GL_LINES);
 	glVertex3f(min[0], min[1], 0.0f);
 	glVertex3f(min[0], max[1], 0.0f);
 	glVertex3f(min[0], max[1], 0.0f);
@@ -391,7 +388,7 @@ void Render(const OrientedRectangle& rect) {
 
 	vec2 min = vec2(-rect.halfExtents.x, -rect.halfExtents.y);
 	vec2 max = vec2(+rect.halfExtents.x, +rect.halfExtents.y);
-	
+
 	glBegin(GL_LINES);
 	glVertex3f(min[0], min[1], 0.0f);
 	glVertex3f(min[0], max[1], 0.0f);
@@ -410,10 +407,10 @@ void FixedFunctionSubdivTetrahedron(float* a, float* b, float* c, int div, float
 	if (div <= 0) {
 		glNormal3fv(a);
 		glVertex3f(a[0] * r, a[1] * r, a[2] * r);
-		
+
 		glNormal3fv(b);
 		glVertex3f(b[0] * r, b[1] * r, b[2] * r);
-		
+
 		glNormal3fv(c);
 		glVertex3f(c[0] * r, c[1] * r, c[2] * r);
 	}
@@ -427,7 +424,7 @@ void FixedFunctionSubdivTetrahedron(float* a, float* b, float* c, int div, float
 		ab[1] = (a[1] + b[1]) / 2.0f;
 		ac[1] = (a[1] + c[1]) / 2.0f;
 		bc[1] = (b[1] + c[1]) / 2.0f;
-		
+
 		ab[2] = (a[2] + b[2]) / 2.0f;
 		ac[2] = (a[2] + c[2]) / 2.0f;
 		bc[2] = (b[2] + c[2]) / 2.0f;
@@ -445,7 +442,7 @@ void FixedFunctionSubdivTetrahedron(float* a, float* b, float* c, int div, float
 		FixedFunctionSubdivTetrahedron(a, ab, ac, div - 1, r);
 		FixedFunctionSubdivTetrahedron(b, bc, ab, div - 1, r);
 		FixedFunctionSubdivTetrahedron(c, ac, bc, div - 1, r);
-		FixedFunctionSubdivTetrahedron(ab, bc, ac, div - 1, r); 
+		FixedFunctionSubdivTetrahedron(ab, bc, ac, div - 1, r);
 	}
 }
 
@@ -461,13 +458,13 @@ void FixedFunctionSphere(int numDivisions, float radius) {
 	static float vdata[12][3] = {
 		{ -X,Y,Z },{ X,Y,Z },{ -X,Y,-Z },{ X,Y,-Z },
 		{ Y,Z,X },{ Y,Z,-X },{ Y,-Z,X },{ Y,-Z,-X },
-		{ Z,X,Y },{ -Z,X,Y },{ Z,-X,Y },{ -Z,-X,Y } 
+		{ Z,X,Y },{ -Z,X,Y },{ Z,-X,Y },{ -Z,-X,Y }
 	};
-	static int tindices[20][3] = { 
+	static int tindices[20][3] = {
 		{ 0,4,1 },{ 0,9,4 },{ 9,5,4 },{ 4,5,8 },{ 4,8,1 },
 		{ 8,10,1 },{ 8,3,10 },{ 5,3,8 },{ 5,2,3 },{ 2,7,3 },
 		{ 7,10,3 },{ 7,6,10 },{ 7,11,6 },{ 11,0,6 },{ 0,1,6 },
-		{ 6,1,10 },{ 9,0,11 },{ 9,11,2 },{ 9,2,5 },{ 7,2,11 } 
+		{ 6,1,10 },{ 9,0,11 },{ 9,11,2 },{ 9,2,5 },{ 7,2,11 }
 	};
 
 	glBegin(GL_TRIANGLES);
@@ -664,7 +661,7 @@ void FixedFunctionCylinder(int slices, float height, float radius) {
 		x *= radius;
 		z *= radius;
 
-		glNormal3f(norm[0], norm[1], norm[2]); 
+		glNormal3f(norm[0], norm[1], norm[2]);
 		glVertex3f((float)x, (float)height, (float)z);
 		glVertex3f((float)x, (float)(-height), (float)z);
 	}
@@ -672,7 +669,7 @@ void FixedFunctionCylinder(int slices, float height, float radius) {
 
 	// TOP CAP
 	glNormal3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_TRIANGLE_FAN); 
+	glBegin(GL_TRIANGLE_FAN);
 	for (int i = 0; i <= slices; i++) {
 		double angle = twopi_slices * (float)i;
 		double x = cos(angle) * radius;
@@ -683,7 +680,7 @@ void FixedFunctionCylinder(int slices, float height, float radius) {
 
 	// BOTTOM CAP
 	glNormal3f(0.0f, -1.0f, 0.0f);
-	glBegin(GL_TRIANGLE_FAN); 
+	glBegin(GL_TRIANGLE_FAN);
 	for (int i = slices; i >= 0; i--) {
 		double angle = twopi_slices * (float)i;
 		double x = cos(angle) * radius;
@@ -717,7 +714,7 @@ void FixedFunctionTorus(int TORUS_MAJOR_RES, int TORUS_MINOR_RES, float TORUS_MA
 				nx = x - TORUS_MAJOR * cos(t * twopi / TORUS_MAJOR_RES);
 				ny = y;
 				nz = z - TORUS_MAJOR * sin(t * twopi / TORUS_MAJOR_RES);
-				scale = 1.0 / sqrt(nx*nx + ny*ny + nz*nz);
+				scale = 1.0 / sqrt(nx * nx + ny * ny + nz * nz);
 				nx *= scale;
 				ny *= scale;
 				nz *= scale;
@@ -742,12 +739,12 @@ void FixedFunctionPlane(float size, int subdivs) {
 			float x = ((float)i * slice) - (size * 0.5f);
 			float z = ((float)j * slice) - (size * 0.5f);
 
-			glVertex3f(x,         0.0f, z);
+			glVertex3f(x, 0.0f, z);
 			glVertex3f(x + slice, 0.0f, z);
-			glVertex3f(x,         0.0f, z + slice);
+			glVertex3f(x, 0.0f, z + slice);
 			glVertex3f(x + slice, 0.0f, z);
 			glVertex3f(x + slice, 0.0f, z + slice);
-			glVertex3f(x,         0.0f, z + slice);
+			glVertex3f(x, 0.0f, z + slice);
 		}
 	}
 
@@ -771,7 +768,8 @@ void FixedFunctionOrigin(bool depthTest, bool twoSided) {
 	}
 	if (depthOn && !depthTest) {
 		glDisable(GL_DEPTH_TEST);
-	} else if (depthTest) {
+	}
+	else if (depthTest) {
 		glEnable(GL_DEPTH_TEST);
 	}
 
@@ -817,7 +815,7 @@ void FixedFunctionOrigin() {
 	FixedFunctionOrigin(false, false);
 }
 
-void FixedFunctionSubdivCone(float *v1, float *v2, int subdiv, float height, float radius) {
+void FixedFunctionSubdivCone(float* v1, float* v2, int subdiv, float height, float radius) {
 	float v0[3] = { 0, 0, 0 };
 
 	if (subdiv == 0) {
@@ -837,13 +835,13 @@ void FixedFunctionSubdivCone(float *v1, float *v2, int subdiv, float height, flo
 			e1[0] * e2[1] - e1[1] * e2[0],
 		};
 		float d = 1.0f / sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-		
+
 		glNormal3f(n[0] * d, n[1] * d, n[2] * d);
 		glVertex3f(v0[0] * radius, v0[1] * radius, v0[2] * radius);
-		
+
 		glNormal3fv(v1);
 		glVertex3f(v1[0] * radius, v1[1] * radius, v1[2] * radius);
-		
+
 		glNormal3fv(v2);
 		glVertex3f(v2[0] * radius, v2[1] * radius, v2[2] * radius);
 

@@ -36,22 +36,7 @@
     <ClCompile Include="app\ControlledCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="app\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\GLWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\QuadTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="app\ObjLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\FixedFunctionPrimitives.cpp">
@@ -73,9 +58,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="physics\Cloth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="physics\DistanceJoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app\Demo.cpp">
@@ -104,15 +86,6 @@
     <ClInclude Include="app\ControlledCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="app\key_binds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\GLWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\glfw3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,18 +96,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\glad.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\QuadTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\tiny_obj_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="app\ObjLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="app\FixedFunctionPrimitives.h">
@@ -161,13 +122,13 @@
     <ClInclude Include="physics\Cloth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="physics\DistanceJoint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="app\Demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="app\BoxDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="maths\compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

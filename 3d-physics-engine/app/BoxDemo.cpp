@@ -6,7 +6,7 @@
 
 void BoxDemo::Initialize(int width, int height) {
 	Demo::Initialize(width, height);
-	std::cout << "Creating new box demo\n";
+	//std::cout << "Creating new box demo\n";
 
 	physicsSystem.RenderRandomColors = true;
 	physicsSystem.ImpulseIteration = 8;
@@ -28,7 +28,7 @@ void BoxDemo::Initialize(int width, int height) {
 
 
 void BoxDemo::ResetDemo() {
-	std::cout << "Resetting the box demo\n";
+	//std::cout << "Resetting the box demo\n";
 	physicsSystem.ClearRigidbodys();
 	physicsSystem.ClearConstraints();
 
@@ -37,15 +37,14 @@ void BoxDemo::ResetDemo() {
 
 	bodies[0].type = RIGIDBODY_TYPE::BOX;
 	bodies[0].position = vec3(0.5f, 6, 0);
-#ifndef LINEAR_ONLY
+
 	bodies[0].orientation = vec3(0.0f, 0.0f, 0.4f);
-#endif
+
 
 	bodies[2].type = RIGIDBODY_TYPE::BOX;
 	bodies[2].position = vec3(3, 9, 0);
-#ifndef LINEAR_ONLY
 	bodies[2].orientation = vec3(0.3f, 0.2f, 0.4f);
-#endif
+
 
 	bodies[1].type = RIGIDBODY_TYPE::SPHERE;
 	bodies[1].position = vec3(0, 1, 0);
@@ -75,10 +74,10 @@ void BoxDemo::Render() {
 
 
 void BoxDemo::Update(float dt) {
-	std::cout << "Physics Update" << std::endl;
+	//std::cout << "Physics Update" << std::endl;
 	//std::cout << "Box demo Update\n";
 	Demo::Update(dt);
-	std::cout << "Physics Update" << std::endl;
+	//std::cout << "Physics Update" << std::endl;
 
 	physicsSystem.Update(dt);
 }
