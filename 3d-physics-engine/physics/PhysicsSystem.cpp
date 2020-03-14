@@ -24,6 +24,16 @@ void PhysicsSystem::AddConstraint(const OBB& obb) {
 	constraints.push_back(obb);
 }
 
+void PhysicsSystem::AddSpring(const Spring& spring)
+{
+	springs.push_back(spring);
+}
+
+void PhysicsSystem::AddCloth(Cloth* cloth)
+{
+	cloths.push_back(cloth);
+}
+
 void PhysicsSystem::ClearRigidbodys() {
 	bodies.clear();
 }
@@ -31,6 +41,16 @@ void PhysicsSystem::ClearRigidbodys() {
 void PhysicsSystem::ClearConstraints()
 {
 	constraints.clear();
+}
+
+void PhysicsSystem::ClearSprings()
+{
+	springs.clear();
+}
+
+void PhysicsSystem::ClearCloths()
+{
+	cloths.clear();
 }
 
 
@@ -53,6 +73,9 @@ void PhysicsSystem::Render() {
 		bodies[i]->Render();
 	}
 
+	for (int i = 0, size = cloths.size(); i < size; ++i) {
+		cloths[i]->Render();
+	}
 	// Colour for constraints
 	glColor3f(constraintDiffuse[0], constraintDiffuse[1], constraintDiffuse[2]);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, constraintAmbient);
@@ -68,8 +91,9 @@ void PhysicsSystem::Update(float deltaTime) {
 	colliders2.clear();
 	results.clear();
 
+	// Collision detection
+	// ----------------------------------------------------------------------------------
 	CollisionManifold result;
-	// Find colliding pairs of bodies
 	for (int i = 0, size = bodies.size(); i < size; ++i) {
 		for (int j = i; j < size; ++j) {
 			if (i == j) continue;
@@ -90,10 +114,13 @@ void PhysicsSystem::Update(float deltaTime) {
 		}
 	}
 
-	// Apply forces to bodies to integrate new position
-	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->ApplyForces();
+	// Apply forces to systems
+	// ----------------------------------------------------------------------------------
+	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->ApplyForces(); // Bodies
+	for (int i = 0, size = cloths.size(); i < size; ++i) cloths[i]->ApplyForces(); // Cloths
 
-	// Apply impulses to resolve collisions
+	// Resolve collisions by applying impulses
+	// ----------------------------------------------------------------------------------
 	for (int k = 0; k < ImpulseIteration; ++k) { // Apply impulses
 		for (int i = 0, size = results.size(); i < size; ++i) {
 			for (int j = 0, jSize = results[i].contacts.size(); j < jSize; ++j) {
@@ -106,10 +133,13 @@ void PhysicsSystem::Update(float deltaTime) {
 		}
 	}
 
-	// Update position and render (sum forces, integrate for new position, check for colissions)
-	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->Update(deltaTime);
+	// Integration of velocity and impulses
+	// ----------------------------------------------------------------------------------
+	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->Update(deltaTime); // Bodies
+	for (int i = 0, size = cloths.size(); i < size; ++i) cloths[i]->Update(deltaTime); // Cloths
 
-
+	// LINEAR PROJECTION
+	// ----------------------------------------------------------------------------------
 	// NOTE: To remove sinking we need to do a Linear Projection and to
 	//		 do it  we need to slightly adjust objects positions along collision normal
 	if (DoLinearProjection) {
@@ -138,6 +168,13 @@ void PhysicsSystem::Update(float deltaTime) {
 		}
 	}
 
+	// Apply spring forces
+	// ----------------------------------------------------------------------------------
+	for (int i = 0, size = springs.size(); i < size; ++i) springs[i].ApplyForce(deltaTime);			// Springs
+	for (int i = 0, size = cloths.size(); i < size; ++i) cloths[i]->ApplySpringForces(deltaTime);	// Cloths
+
 	// Solve constraints
-	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->SolveConstraints(constraints);
+	// ----------------------------------------------------------------------------------
+	for (int i = 0, size = bodies.size(); i < size; ++i) bodies[i]->SolveConstraints(constraints); // Bodies
+	for (int i = 0, size = cloths.size(); i < size; ++i) cloths[i]->SolveConstraints(constraints); // Cloths
 }

@@ -146,10 +146,12 @@
     <ClCompile Include="app\Scene.cpp" />
     <ClCompile Include="maths\vectors.cpp" />
     <ClCompile Include="app\QuadTree.cpp" />
+    <ClCompile Include="physics\Cloth.cpp" />
     <ClCompile Include="physics\Particle.cpp" />
     <ClCompile Include="physics\PhysicsSystem.cpp" />
     <ClCompile Include="physics\RigidBody.cpp" />
     <ClCompile Include="physics\RigidbodyWithVolume.cpp" />
+    <ClCompile Include="physics\Spring.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app\Camera.h" />
@@ -171,10 +173,12 @@
     <ClInclude Include="maths\vectors.h" />
     <ClInclude Include="app\QuadTree.h" />
     <ClInclude Include="dfns.h" />
+    <ClInclude Include="physics\Cloth.h" />
     <ClInclude Include="physics\Particle.h" />
     <ClInclude Include="physics\PhysicsSystem.h" />
     <ClInclude Include="physics\RigidBody.h" />
     <ClInclude Include="physics\RigidbodyWithVolume.h" />
+    <ClInclude Include="physics\Spring.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\glfw3.lib" />
