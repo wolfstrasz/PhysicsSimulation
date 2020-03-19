@@ -81,3 +81,4 @@ void ControlledCamera::SetZoom(float zoom) {
 void ControlledCamera::SetRotation(const vec2& rotation) {
 	currentRotation = rotation;
 }
+

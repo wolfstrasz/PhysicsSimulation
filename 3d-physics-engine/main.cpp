@@ -18,6 +18,8 @@
 #include <conio.h>
 
 #include "app/BoxDemo.h"
+#include "app/BowlingDemo.h"
+#include "app/ClothDemo.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -155,7 +157,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		// ON UPDATE of window
 		if (currentDemo == nullptr)
 		{
-			currentDemo = new BoxDemo();
+			//currentDemo = new BoxDemo();
+			//currentDemo = new BowlingDemo();
+			currentDemo = new ClothDemo();
 			currentDemo->Initialize(WWIDTH, WHEIGHT);
 
 			//Apply DEMO CAMERA

@@ -132,7 +132,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app\BowlingDemo.cpp" />
     <ClCompile Include="app\BoxDemo.cpp" />
+    <ClCompile Include="app\ClothDemo.cpp" />
     <ClCompile Include="app\Demo.cpp" />
     <ClCompile Include="app\FixedFunctionPrimitives.cpp" />
     <ClCompile Include="glad.c" />
@@ -151,8 +153,10 @@
     <ClCompile Include="physics\Spring.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app\BowlingDemo.h" />
     <ClInclude Include="app\BoxDemo.h" />
     <ClInclude Include="app\Camera.h" />
+    <ClInclude Include="app\ClothDemo.h" />
     <ClInclude Include="app\ControlledCamera.h" />
     <ClInclude Include="app\Demo.h" />
     <ClInclude Include="app\FixedFunctionPrimitives.h" />

@@ -150,7 +150,7 @@ void Cloth::Update(float dt) {
 }
 
 void Cloth::ApplySpringForces(float dt) {
-	for (int i = 0; i < structural.size(); ++i) {
+	for (int i = 0, size = structural.size(); i < size; ++i) {
 		structural[i].ApplyForce(dt);
 	}
 	for (int i = 0, size = shear.size(); i < size; ++i) {
@@ -162,8 +162,7 @@ void Cloth::ApplySpringForces(float dt) {
 }
 
 
-void Cloth::SolveConstraints(
-	const std::vector<OBB>& constraints) {
+void Cloth::SolveConstraints(const std::vector<OBB>& constraints) {
 	for (int i = 0, size = verts.size(); i < size; ++i) {
 		verts[i].SolveConstraints(constraints);
 	}
@@ -171,6 +170,17 @@ void Cloth::SolveConstraints(
 
 // Render
 void Cloth::Render(bool debug) {
+
+	static const float redDiffuse[]{ 200.0f / 255.0f, 0.0f, 0.0f, 0.0f };
+	static const float redAmbient[]{ 200.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f, 0.0f };
+	static const float zero[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	glColor3f(redDiffuse[0], redDiffuse[1], redDiffuse[2]);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, redAmbient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, redDiffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, zero);
+
+	
 	// Loop to find particles to act as vertices
 	for (int x = 0; x < clothSize - 1; ++x) {
 		for (int z = 0; z < clothSize - 1; ++z) {
@@ -183,9 +193,9 @@ void Cloth::Render(bool debug) {
 			Triangle t1(verts[tl].GetPosition(), verts[br].GetPosition(), verts[bl].GetPosition());
 			Triangle t2(verts[tl].GetPosition(), verts[tr].GetPosition(), verts[br].GetPosition());
 
-			// Render
-			::Render(t1);
-			::Render(t2);
+			::Render(t1, true);
+			::Render(t2, true);
 		}
 	}
+
 }

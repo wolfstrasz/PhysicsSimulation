@@ -249,9 +249,10 @@ void ApplyImpulse(RigidbodyWithVolume& A, RigidbodyWithVolume& B, const Collisio
 
 	// Clamp between -j * friction coef and +j * friction coef
 	float friction = sqrtf(A.friction * B.friction);
-	if (fMagnitude > j* friction) fMagnitude = j * friction;
-	else if (fMagnitude < -j * friction) fMagnitude = -j * friction;
+	if (fMagnitude > j* friction) fMagnitude = j * friction ;
+	else if (fMagnitude < -j * friction) fMagnitude = -j * friction ;
 
+	if (fMagnitude < 0.001f && fMagnitude > -0.001f) fMagnitude = 0.0f;
 	// Apply tangential impulse (friction) to bodies
 	vec3 tangentImpuse = fNormal * fMagnitude;
 	A.velocity = A.velocity - tangentImpuse * invMass1;

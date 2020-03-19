@@ -3,8 +3,8 @@
 
 #include "../maths/geometry2d.h"
 #include "../maths/geometry3d.h"
-#include "ObjLoader.h"
-#include "Scene.h"
+//#include "ObjLoader.h"
+//#include "Scene.h"
 #include "../maths/matrices.h"
 
 // 2D Geometry
